@@ -7,8 +7,8 @@ import numpy as np
 import math
 # from sklearn import preprocessing, cross_validation, svm
 # from sklearn.linear_model import LinearRegression
-# import scipy as sp
-# import scipy.optimize as scopt
+import scipy as sp
+import scipy.optimize as scopt
 
 def plot_selected(df, columns, start_index, end_index):
     """Plot the desired columns over index values in the given range."""
@@ -32,7 +32,7 @@ def get_data(symbols, dates,col):
                 parse_dates=['Date'],date_parser=dateparse, usecols=['Date', col ], na_values=['nan'])
         df_temp = df_temp.rename(columns={col: symbol})
         df = df.join(df_temp)
-        if symbol == 'TASI':  # drop dates SPY did not trade
+        if symbol == 'TASI':  # drop dates SPY did not tradenumpy-1.11.1+mkl-cp27-cp27m-win32.whl
             df = df.dropna(subset=["TASI"])
 
     return df
@@ -112,7 +112,49 @@ def calculate_pf_beta(df,alloc,symbols):
     beta = sum(betas*alloc)
     return beta       
 
-    
+def negative_sharpe_ratio_n_minus_1_stock(weights,returns,risk_free_rate):
+    """
+    Given n-1 weights, return a negative sharpe ratio
+    """
+    weights2 = sp.append(weights, 1-np.sum(weights))
+    return -sharpe_ratio(returns, weights2, risk_free_rate)
+
+def optimize_portfolio(returns, risk_free_rate):
+    """ 
+    Performs the optimization
+    """
+    # start with equal weights
+    w0 = np.ones(returns.columns.size-1,dtype=float) * 1.0 / returns.columns.size
+    # minimize the negative sharpe value
+    w1 = scopt.fmin(negative_sharpe_ratio_n_minus_1_stock,w0, args=(returns, risk_free_rate))
+    # build final set of weights
+    final_w = sp.append(w1, 1 - np.sum(w1))
+    # and calculate the final, optimized, sharpe ratio
+    final_sharpe = sharpe_ratio(returns, final_w, risk_free_rate)
+    return (final_w, final_sharpe)
+
+def calc_annual_returns(daily_returns):
+    grouped = np.exp(daily_returns.groupby(lambda date: date.year).sum())-1
+    return grouped        
+
+def sharpe_ratio(returns, weights = None, risk_free_rate = 0):
+    n = returns.columns.size
+    if weights is None: weights = np.ones(n)/n
+    # get the portfolio variance
+    var = calc_portfolio_var(returns, weights)
+    # and the means of the stocks in the portfolio
+    means = returns.mean()
+    # and return the sharpe ratio
+    return (means.dot(weights) - risk_free_rate)/np.sqrt(var)
+
+def calc_portfolio_var(returns, weights=None):
+    if weights is None: 
+        weights = np.ones(returns.columns.size) / \
+        returns.columns.size
+    sigma = np.cov(returns.T,ddof=0)
+    var = (weights * sigma * weights.T).sum()
+    return var
+
 def test_run():
     # Define a date range
     dates = pd.date_range('01-01-2012', '31-07-2016')
@@ -135,16 +177,26 @@ def test_run():
     port_val = pos_val.sum(axis=1)
     tasi_val = normalize_data(tasi) * capital
     tasi_port = tasi_val.sum(axis=1)
-    print port_val[-1]
     print 'Portofolio Stats'
     stats(port_val,beta)
     print 'TASI Stats'
     stats(tasi_port,1)
     calc_alpha(port_val,tasi_port,beta)
-    port_val.plot(title='Portofolio')
-    tasi_port.plot(title='TASI')
-    plt.show()
-
+    # port_val.plot(title='Portofolio')
+    # tasi_port.plot(title='TASI')
+    # plt.show()
+    print 'Optimization'
+    symbols = ['1120','2020','2330']
+    df = get_data(symbols, dates,'Close')
+    df = df.drop('TASI',1)
+    # df = normalize_data(df)
+    dr = compute_daily_returns(df)
+    print dr
+    annual_returns = calc_annual_returns(dr)
+    print annual_returns
+    print calc_portfolio_var(annual_returns)
+    print sharpe_ratio(annual_returns)
+    print optimize_portfolio(annual_returns, 0)
     # Forecasting
     # forecast_out = int(math.ceil(0.01 * len(df)))
 
