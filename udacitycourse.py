@@ -9,6 +9,8 @@ import math
 # from sklearn.linear_model import LinearRegression
 import scipy as sp
 import scipy.optimize as scopt
+import cvxopt as opt
+from cvxopt import blas, solvers
 
 def plot_selected(df, columns, start_index, end_index):
     """Plot the desired columns over index values in the given range."""
@@ -155,14 +157,45 @@ def calc_portfolio_var(returns, weights=None):
     var = (weights * sigma * weights.T).sum()
     return var
 
+def optimal_portfolio(returns):
+    n = len(returns)
+    returns = np.asmatrix(returns)
+    print returns
+    N = 100
+    mus = [10**(5.0 * t/N - 1.0) for t in range(N)]
+    
+    # Convert to cvxopt matrices
+    S = opt.matrix(np.cov(returns))
+    pbar = opt.matrix(np.mean(returns, axis=1))
+    
+    # Create constraint matrices
+    G = -opt.matrix(np.eye(n))   # negative n x n identity matrix
+    h = opt.matrix(0.0, (n ,1))
+    A = opt.matrix(1.0, (1, n))
+    b = opt.matrix(1.0)
+    
+    # Calculate efficient frontier weights using quadratic programming
+    portfolios = [solvers.qp(mu*S, -pbar, G, h, A, b)['x'] 
+                  for mu in mus]
+    ## CALCULATE RISKS AND RETURNS FOR FRONTIER
+    returns = [blas.dot(pbar, x) for x in portfolios]
+    risks = [np.sqrt(blas.dot(x, S*x)) for x in portfolios]
+    ## CALCULATE THE 2ND DEGREE POLYNOMIAL OF THE FRONTIER CURVE
+    m1 = np.polyfit(returns, risks, 2)
+    x1 = np.sqrt(m1[2] / m1[0])
+    # CALCULATE THE OPTIMAL PORTFOLIO
+    wt = solvers.qp(opt.matrix(x1 * S), -pbar, G, h, A, b)['x']
+    return np.asarray(wt), returns, risks
+
+
 def test_run():
     # Define a date range
     dates = pd.date_range('01-01-2012', '31-07-2016')
 
     # Choose stock symbols to read
 
-    symbols = ['TASI','1150','1120','2020','2330','3030','3040','3050','4001','4002','4008','4190','4200','4240','2270','6001','6002','4031','4110','4260','1820']
-    alloc = [0,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05]
+    symbols = ['TASI','1150','1120','2020','2330','3030','3040','3050','4001','4002','4190','4200','4240','2270','6001','6002','4110','4260']
+    alloc = [0,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05]
     # Get stock data
     df = get_data(symbols, dates,'Close')
     tasi = get_data(['TASI'],dates,'Close')
@@ -186,17 +219,15 @@ def test_run():
     # tasi_port.plot(title='TASI')
     # plt.show()
     print 'Optimization'
-    symbols = ['1120','2020','2330']
     df = get_data(symbols, dates,'Close')
     df = df.drop('TASI',1)
-    # df = normalize_data(df)
+    df = normalize_data(df)
     dr = compute_daily_returns(df)
-    print dr
     annual_returns = calc_annual_returns(dr)
-    print annual_returns
-    print calc_portfolio_var(annual_returns)
-    print sharpe_ratio(annual_returns)
-    print optimize_portfolio(annual_returns, 0)
+    ar = annual_returns.mean().transpose()
+    print ar 
+    weights, returns, risks = optimal_portfolio(ar)
+    print weights
     # Forecasting
     # forecast_out = int(math.ceil(0.01 * len(df)))
 
@@ -205,7 +236,7 @@ def test_run():
     #dca = dollar_avg(df)
     # get_max_price(df,symbols)
     # daily_returns = compute_daily_returns(df)
-    # daily_returns.plot(kind='scatter',x='TASI',y='4190')
+    # daily_returns. plot(kind='scatter',x='TASI',y='4190')
     # beta_4300,alpha_4300 = np.polyfit(daily_returns['TASI'],daily_returns['4190'],1)
     # print beta_4300
     # print alpha_4300*252
