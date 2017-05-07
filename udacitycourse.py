@@ -191,7 +191,7 @@ def optimal_portfolio(returns):
 
 def test_run():
     # Define a date range
-    dates = pd.date_range('01-01-2006', '31-07-2016')
+    dates = pd.date_range('01-01-1993', '31-07-2016')
     N= (dates[-1]-dates[0])/365
     N = str(N).split()[0]
     # Choose stock symbols to read
@@ -203,9 +203,12 @@ def test_run():
     stock = 'TASI'
     df = get_data(symbols, dates,'Close')
     df = df.resample('M')
+    # calculate the stock CAGR
+    CAGR = ((df[stock][-1]/df[stock][0])**(1/float(N))-1)*100
+    # Moving Average
     df['MA'] = pd.rolling_mean(df[stock],window=3)
     buysignal = df[stock] > df['MA']
-    df['signal']= np.where(df[stock] > df['MA'],1.0,0)
+    df['signal']= np.where(buysignal,1.0,0)
     df['postions']=df['signal'].diff()
     print df
     capital = 10000
@@ -220,7 +223,7 @@ def test_run():
             trades+=1
     cagr = (((capital/10000)**(1/float(N)))-1)*100
     print index , postion , capital
-    print trades    ,N,cagr
+    print trades    ,N,cagr,CAGR
     # df[buysignal].to_csv("test.csv")
 
 
