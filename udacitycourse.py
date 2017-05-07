@@ -191,19 +191,20 @@ def optimal_portfolio(returns):
 
 def test_run():
     # Define a date range
-    dates = pd.date_range('01-01-2000', '31-07-2016')
+    dates = pd.date_range('01-01-1993', '31-07-2016')
 
     # Choose stock symbols to read
 
-    symbols2 = ['TASI','2330','3010','3050','4190','4200','6070','2230','4260']
-    symbols = ['TASI']
+    symbols = ['TASI','2330','3010','3050','4190','4200','6070','2230','4260','1120','4300']
+    symbols2 = ['TASI']
     alloc = [0,0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125]
     # Get stock data
+    stock = '4300'
     df = get_data(symbols, dates,'Close')
     df = df.resample('M')
-    df['MA'] = pd.rolling_mean(df['TASI'],window=6)
-    buysignal = df['TASI'] > df['MA']
-    df['signal']= np.where(df['TASI'] > df['MA'],1.0,0)
+    df['MA'] = pd.rolling_mean(df[stock],window=6)
+    buysignal = df[stock] > df['MA']
+    df['signal']= np.where(df[stock] > df['MA'],1.0,0)
     df['postions']=df['signal'].diff()
     print df
     capital = 10000
@@ -211,14 +212,12 @@ def test_run():
     trades = 0
     for index,row in df.iterrows():
         if row['postions'] == 1:
-            postion = capital / row['TASI']
-            capital = 0
+            postion = capital / row[stock]
             trades+=1
         if row['postions'] == -1:
-            capital = postion * row['TASI']
-            postion = 0
+            capital = postion * row[stock] - (postion * row[stock] * 0.0015)
             trades+=1
-        print index , postion , capital
+    print index , postion , capital
     print trades    
     # df[buysignal].to_csv("test.csv")
 
@@ -240,12 +239,12 @@ def test_run():
     # print 'TASI Stats'
     # stats(tasi_port,1)
     # calc_alpha(port_val,tasi_port,beta)
-    ax = df['TASI'].plot(label="TASI")
-    df['MA'].plot(label='200 MA',ax=ax)
-    # ax = port_val.plot(label='Portofolio')
-    # tasi_port.plot(label='TASI',ax=ax)
-    ax.legend(loc="upper right")
-    plt.show()
+    # ax = df[stock].plot(label=stock)
+    # df['MA'].plot(label='200 MA',ax=ax)
+    # # ax = port_val.plot(label='Portofolio')
+    # # tasi_port.plot(label='TASI',ax=ax)
+    # ax.legend(loc="upper right")
+    # plt.show()
     # print 'Optimization'
     # df = get_data(symbols, dates,'Close')
     # df = df.drop('TASI',1)
