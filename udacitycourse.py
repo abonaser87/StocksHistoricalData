@@ -191,18 +191,19 @@ def optimal_portfolio(returns):
 
 def test_run():
     # Define a date range
-    dates = pd.date_range('01-01-1993', '31-07-2016')
-
+    dates = pd.date_range('01-01-2006', '31-07-2016')
+    N= (dates[-1]-dates[0])/365
+    N = str(N).split()[0]
     # Choose stock symbols to read
 
     symbols = ['TASI','2330','3010','3050','4190','4200','6070','2230','4260','1120','4300']
     symbols2 = ['TASI']
     alloc = [0,0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125]
     # Get stock data
-    stock = '4300'
+    stock = 'TASI'
     df = get_data(symbols, dates,'Close')
     df = df.resample('M')
-    df['MA'] = pd.rolling_mean(df[stock],window=6)
+    df['MA'] = pd.rolling_mean(df[stock],window=3)
     buysignal = df[stock] > df['MA']
     df['signal']= np.where(df[stock] > df['MA'],1.0,0)
     df['postions']=df['signal'].diff()
@@ -215,10 +216,11 @@ def test_run():
             postion = capital / row[stock]
             trades+=1
         if row['postions'] == -1:
-            capital = postion * row[stock] - (postion * row[stock] * 0.0015)
+            capital = postion * row[stock] - (postion * row[stock] * 0.0015 * 2)
             trades+=1
+    cagr = (((capital/10000)**(1/float(N)))-1)*100
     print index , postion , capital
-    print trades    
+    print trades    ,N,cagr
     # df[buysignal].to_csv("test.csv")
 
 
