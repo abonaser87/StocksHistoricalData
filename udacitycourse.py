@@ -39,6 +39,15 @@ def get_data(symbols, dates,col):
 
     return df
 
+def get_divdend(symbols,dates):
+    df = pd.DataFrame(index=dates)
+    if 'TASI' in symbols:
+        symbols.pop(0)
+    for symbol in symbols:
+        df_temp=pd.read_csv("divdend.csv",index_col='Date', usecols=['Date', symbol ], na_values=['0'])
+        df = df.join(df_temp)
+    df=df.fillna(0)
+    return df
 
 def plot_data(df, title="Stock prices"):
     """Plot stock prices with a custom title and meaningful axis labels."""
@@ -192,6 +201,8 @@ def optimal_portfolio(returns):
 def test_run():
     # Define a date range
     dates = pd.date_range('01-01-1993', '31-07-2016')
+    divdates=range(1996,2017)
+    print divdates
     N= (dates[-1]-dates[0])/365
     N = str(N).split()[0]
     # Choose stock symbols to read
@@ -203,10 +214,13 @@ def test_run():
     stock = 'TASI'
     df = get_data(symbols, dates,'Close')
     df = df.resample('M')
+    # Divdended
+    divdend = get_divdend(symbols,divdates)
+    print divdend
     # calculate the stock CAGR
     CAGR = ((df[stock][-1]/df[stock][0])**(1/float(N))-1)*100
     # Moving Average
-    df['MA'] = pd.rolling_mean(df[stock],window=3)
+    df['MA'] = pd.rolling_mean(df[stock],window=6)
     buysignal = df[stock] > df['MA']
     df['signal']= np.where(buysignal,1.0,0)
     df['postions']=df['signal'].diff()
