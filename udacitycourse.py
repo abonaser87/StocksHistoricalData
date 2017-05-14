@@ -5,17 +5,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import math
-<<<<<<< HEAD
-# import scipy as sp
-# import scipy.optimize as scopt
-# from sklearn import preprocessing, cross_validation, svm
-# from sklearn.linear_model import LinearRegression
-=======
 # from sklearn import preprocessing, cross_validation, svm
 # from sklearn.linear_model import LinearRegression
 import scipy as sp
 import scipy.optimize as scopt
->>>>>>> fb519a18c52729d5a3ea33af160343716598188a
+import cvxopt as opt
+from cvxopt import blas, solvers
 
 def plot_selected(df, columns, start_index, end_index):
     """Plot the desired columns over index values in the given range."""
@@ -39,15 +34,20 @@ def get_data(symbols, dates,col):
                 parse_dates=['Date'],date_parser=dateparse, usecols=['Date', col ], na_values=['nan'])
         df_temp = df_temp.rename(columns={col: symbol})
         df = df.join(df_temp)
-<<<<<<< HEAD
-        if symbol == 'TASI':  # drop dates SPY did not trade
-=======
         if symbol == 'TASI':  # drop dates SPY did not tradenumpy-1.11.1+mkl-cp27-cp27m-win32.whl
->>>>>>> fb519a18c52729d5a3ea33af160343716598188a
             df = df.dropna(subset=["TASI"])
 
     return df
 
+def get_divdend(symbols,dates):
+    df = pd.DataFrame(index=dates)
+    if 'TASI' in symbols:
+        symbols.pop(0)
+    for symbol in symbols:
+        df_temp=pd.read_csv("divdend.csv",index_col='Date', usecols=['Date', symbol ], na_values=['0'])
+        df = df.join(df_temp)
+    df=df.fillna(0)
+    return df
 
 def plot_data(df, title="Stock prices"):
     """Plot stock prices with a custom title and meaningful axis labels."""
@@ -86,13 +86,14 @@ def forecast(df):
     confidence = clf.score(X_test, y_test)
     print(confidence)
 def dollar_avg(df):
-    capital = 50000
-    test = df.resample('Q')
-    print test
-    alloc = capital/ 4 / test
+    capital = 4000 * 12 * 4
+    test = df.resample('M')
+    alloc = [1,0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125]
+    alloc[:] = [x*4000 for x in alloc]
+    alloc = alloc / test
     print alloc
     print alloc.sum(axis=0).round()
-    avg_price = capital / alloc.sum(axis=0).round()
+    avg_price = 27500 / alloc.sum(axis=0).round()
     print avg_price
 def stats(df,beta):
     dr = compute_daily_returns(df)
@@ -123,9 +124,6 @@ def calculate_pf_beta(df,alloc,symbols):
     beta = sum(betas*alloc)
     return beta       
 
-<<<<<<< HEAD
-    
-=======
 def negative_sharpe_ratio_n_minus_1_stock(weights,returns,risk_free_rate):
     """
     Given n-1 weights, return a negative sharpe ratio
@@ -169,69 +167,122 @@ def calc_portfolio_var(returns, weights=None):
     var = (weights * sigma * weights.T).sum()
     return var
 
->>>>>>> fb519a18c52729d5a3ea33af160343716598188a
+def optimal_portfolio(returns):
+    n = len(returns)
+    returns = np.asmatrix(returns)
+    print returns
+    N = 100
+    mus = [10**(5.0 * t/N - 1.0) for t in range(N)]
+    
+    # Convert to cvxopt matrices
+    S = opt.matrix(np.cov(returns))
+    pbar = opt.matrix(np.mean(returns, axis=1))
+    
+    # Create constraint matrices
+    G = -opt.matrix(np.eye(n))   # negative n x n identity matrix
+    h = opt.matrix(0.0, (n ,1))
+    A = opt.matrix(1.0, (1, n))
+    b = opt.matrix(1.0)
+    
+    # Calculate efficient frontier weights using quadratic programming
+    portfolios = [solvers.qp(mu*S, -pbar, G, h, A, b)['x'] 
+                  for mu in mus]
+    ## CALCULATE RISKS AND RETURNS FOR FRONTIER
+    returns = [blas.dot(pbar, x) for x in portfolios]
+    risks = [np.sqrt(blas.dot(x, S*x)) for x in portfolios]
+    ## CALCULATE THE 2ND DEGREE POLYNOMIAL OF THE FRONTIER CURVE
+    m1 = np.polyfit(returns, risks, 2)
+    x1 = np.sqrt(m1[2] / m1[0])
+    # CALCULATE THE OPTIMAL PORTFOLIO
+    wt = solvers.qp(opt.matrix(x1 * S), -pbar, G, h, A, b)['x']
+    return np.asarray(wt), returns, risks
+
+
 def test_run():
     # Define a date range
-    dates = pd.date_range('01-01-2012', '31-07-2016')
-
+    dates = pd.date_range('01-01-1993', '31-07-2016')
+    divdates=range(1996,2017)
+    print divdates
+    N= (dates[-1]-dates[0])/365
+    N = str(N).split()[0]
     # Choose stock symbols to read
 
-    symbols = ['TASI','1150','1120','2020','2330','3030','3040','3050','4001','4002','4008','4190','4200','4240','2270','6001','6002','4031','4110','4260','1820']
-    alloc = [0,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05]
+    symbols = ['TASI','2330','3010','3050','4190','4200','6070','2230','4260','1120','4300']
+    symbols2 = ['TASI']
+    alloc = [0,0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125]
     # Get stock data
+    stock = 'TASI'
     df = get_data(symbols, dates,'Close')
-    tasi = get_data(['TASI'],dates,'Close')
-    beta = calculate_pf_beta(df,alloc,symbols)
-    capital = 200000
-    pos_val = normalize_data(df) * alloc * capital
-    # shares = [x * capital for x in alloc] 
-    # shares = np.asarray(shares / df.iloc[0])
-    # total = np.asarray([a*b for a,b in zip(shares,divedend)])
-    # total = total.sum()
-    # print total
-    port_val = pos_val.sum(axis=1)
-    tasi_val = normalize_data(tasi) * capital
-    tasi_port = tasi_val.sum(axis=1)
-<<<<<<< HEAD
-    print port_val[-1]
-=======
->>>>>>> fb519a18c52729d5a3ea33af160343716598188a
-    print 'Portofolio Stats'
-    stats(port_val,beta)
-    print 'TASI Stats'
-    stats(tasi_port,1)
-    calc_alpha(port_val,tasi_port,beta)
-<<<<<<< HEAD
-    port_val.plot(title='Portofolio')
-    tasi_port.plot(title='TASI')
-    plt.show()
+    df = df.resample('M')
+    # Divdended
+    divdend = get_divdend(symbols,divdates)
+    print divdend
+    # calculate the stock CAGR
+    CAGR = ((df[stock][-1]/df[stock][0])**(1/float(N))-1)*100
+    # Moving Average
+    df['MA'] = pd.rolling_mean(df[stock],window=6)
+    buysignal = df[stock] > df['MA']
+    df['signal']= np.where(buysignal,1.0,0)
+    df['postions']=df['signal'].diff()
+    print df
+    capital = 10000
+    postion = 0
+    trades = 0
+    for index,row in df.iterrows():
+        if row['postions'] == 1:
+            postion = capital / row[stock]
+            trades+=1
+        if row['postions'] == -1:
+            capital = postion * row[stock] - (postion * row[stock] * 0.0015 * 2)
+            trades+=1
+    cagr = (((capital/10000)**(1/float(N)))-1)*100
+    print index , postion , capital
+    print trades    ,N,cagr,CAGR
+    # df[buysignal].to_csv("test.csv")
 
-=======
-    # port_val.plot(title='Portofolio')
-    # tasi_port.plot(title='TASI')
+
+    # tasi = get_data(['TASI'],dates,'Close')
+    # beta = calculate_pf_beta(df,alloc,symbols)
+    # capital = 200000
+    # pos_val = normalize_data(df) * alloc * capital
+    # # shares = [x * capital for x in alloc] 
+    # # shares = np.asarray(shares / df.iloc[0])
+    # # total = np.asarray([a*b for a,b in zip(shares,divedend)])
+    # # total = total.sum()
+    # # print total
+    # port_val = pos_val.sum(axis=1)
+    # tasi_val = normalize_data(tasi) * capital
+    # tasi_port = tasi_val.sum(axis=1)
+    # print 'Portofolio Stats'
+    # stats(port_val,beta)
+    # print 'TASI Stats'
+    # stats(tasi_port,1)
+    # calc_alpha(port_val,tasi_port,beta)
+    # ax = df[stock].plot(label=stock)
+    # df['MA'].plot(label='200 MA',ax=ax)
+    # # ax = port_val.plot(label='Portofolio')
+    # # tasi_port.plot(label='TASI',ax=ax)
+    # ax.legend(loc="upper right")
     # plt.show()
-    print 'Optimization'
-    symbols = ['1120','2020','2330']
-    df = get_data(symbols, dates,'Close')
-    df = df.drop('TASI',1)
+    # print 'Optimization'
+    # df = get_data(symbols, dates,'Close')
+    # df = df.drop('TASI',1)
     # df = normalize_data(df)
-    dr = compute_daily_returns(df)
-    print dr
-    annual_returns = calc_annual_returns(dr)
-    print annual_returns
-    print calc_portfolio_var(annual_returns)
-    print sharpe_ratio(annual_returns)
-    print optimize_portfolio(annual_returns, 0)
->>>>>>> fb519a18c52729d5a3ea33af160343716598188a
+    # dr = compute_daily_returns(df)
+    # annual_returns = calc_annual_returns(dr)
+    # ar = annual_returns.mean().transpose()
+    # print ar 
+    # weights, returns, risks = optimal_portfolio(ar)
+    # print weights
     # Forecasting
     # forecast_out = int(math.ceil(0.01 * len(df)))
 
     # df['label'] = df['4190'].shift(-forecast_out)
     # forecast(df)
-    #dca = dollar_avg(df)
+    # dca = dollar_avg(df)
     # get_max_price(df,symbols)
     # daily_returns = compute_daily_returns(df)
-    # daily_returns.plot(kind='scatter',x='TASI',y='4190')
+    # daily_returns. plot(kind='scatter',x='TASI',y='4190')
     # beta_4300,alpha_4300 = np.polyfit(daily_returns['TASI'],daily_returns['4190'],1)
     # print beta_4300
     # print alpha_4300*252
@@ -248,8 +299,4 @@ def test_run():
 
 
 if __name__ == "__main__":
-<<<<<<< HEAD
     test_run()
-=======
-    test_run()
->>>>>>> fb519a18c52729d5a3ea33af160343716598188a
