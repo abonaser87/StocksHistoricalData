@@ -204,14 +204,15 @@ def test_run():
     divdates=range(2007,2017)
     N= (dates[-1]-dates[0])/365
     N = str(N).split()[0]
-    # Choose stock symbols to read
 
-    symbols = ['TASI','1150','1120','2020','2330','3030','3040','3050','4001','4002','4008','4190','4200','4240','2270','6001','6002','4031','4110','4260','1820']
-    alloc = [0,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05]
+    # Choose stock symbols to read
+    symbols = ['TASI','2330','3010','3050','4190','4200','6070','2230','4260']
+    alloc = [0,0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125]
+
     # Get stock data
     stock = 'TASI'
     df = get_data(symbols, dates,'Close')
-    # df = df.resample('M')
+
     # Divdended
     divdend = get_divdend(symbols,divdates)
     capital = 200000
@@ -220,86 +221,92 @@ def test_run():
     divdends = shares * divdend
     # TODO: how to solve NAN shares if the stock have not traded yet , maybe it will be easier to adjust the price directly ? and implemnt a sum for the whole period
     print divdends
+
+    # MovingAvgTest(N, df, stock)
+    # OptPort(df)
+    # dca = dollar_avg(df)
+    # BetaAlpha(dates, df, symbols)
+    # backtest(alloc, dates, df, symbols)
+
+
+def backtest(alloc, dates, df, symbols):
+    tasi = get_data(['TASI'], dates, 'Close')
+    beta = calculate_pf_beta(df, alloc, symbols)
+    capital = 200000
+    pos_val = normalize_data(df) * alloc * capital
+    port_val = pos_val.sum(axis=1)
+    tasi_val = normalize_data(tasi) * capital
+    tasi_port = tasi_val.sum(axis=1)
+    print 'Portofolio Stats'
+    stats(port_val, beta)
+    print 'TASI Stats'
+    stats(tasi_port, 1)
+    calc_alpha(port_val, tasi_port, beta)
+    # ax = port_val.plot(label='Portofolio')
+    # tasi_port.plot(label='TASI',ax=ax)
+    ax.legend(loc="upper right")
+    plt.show()
+
+
+def BetaAlpha(dates, df, symbols):
+    get_max_price(df, symbols)
+    daily_returns = compute_daily_returns(df)
+    daily_returns.plot(kind='scatter', x='TASI', y='4190')
+    beta_4300, alpha_4300 = np.polyfit(daily_returns['TASI'], daily_returns['4190'], 1)
+    print beta_4300
+    print alpha_4300 * 252
+    plt.plot(daily_returns['TASI'], beta_4300 * daily_returns['TASI'] + alpha_4300, '-', color='r')
+    print daily_returns.corr(method='pearson')
+    df = get_data(symbols, dates, 'Vol')
+    get_mean_volume(df, symbols)
+    plt.show()
+    # Slice and plot
+    plot_selected(normalize_data(df), ['TASI', '4300'], '01-01-2015', '31-12-2015')
+
+
+def OptPort(df):
+    print 'Optimization'
+    df = df.drop('TASI',1)
+    df = normalize_data(df)
+    dr = compute_daily_returns(df)
+    annual_returns = calc_annual_returns(dr)
+    ar = annual_returns.mean().transpose()
+    print ar
+    weights, returns, risks = optimal_portfolio(ar)
+    print weights
+    # Forecasting
+    forecast_out = int(math.ceil(0.01 * len(df)))
+    df['label'] = df['4190'].shift(-forecast_out)
+    forecast(df)
+
+
+def MovingAvgTest(N, df, stock):
     # calculate the stock CAGR
-    CAGR = ((df[stock][-1]/df[stock][0])**(1/float(N))-1)*100
+    df = df.resample('M')
+    CAGR = ((df[stock][-1] / df[stock][0]) ** (1 / float(N)) - 1) * 100
     # Moving Average
-    df['MA'] = pd.rolling_mean(df[stock],window=6)
+    df['MA'] = pd.rolling_mean(df[stock], window=6)
     buysignal = df[stock] > df['MA']
-    df['signal']= np.where(buysignal,1.0,0)
-    df['postions']=df['signal'].diff()
+    df['signal'] = np.where(buysignal, 1.0, 0)
+    df['postions'] = df['signal'].diff()
     print df
     capital = 10000
     postion = 0
     trades = 0
-    for index,row in df.iterrows():
+    for index, row in df.iterrows():
         if row['postions'] == 1:
             postion = capital / row[stock]
-            trades+=1
+            trades += 1
         if row['postions'] == -1:
             capital = postion * row[stock] - (postion * row[stock] * 0.0015 * 2)
-            trades+=1
-    cagr = (((capital/10000)**(1/float(N)))-1)*100
-    print index , postion , capital
-    print trades    ,N,cagr,CAGR
-    # df[buysignal].to_csv("test.csv")
-
-
-    # tasi = get_data(['TASI'],dates,'Close')
-    # beta = calculate_pf_beta(df,alloc,symbols)
-    # capital = 200000
-    # pos_val = normalize_data(df) * alloc * capital
-    # # shares = [x * capital for x in alloc] 
-    # # shares = np.asarray(shares / df.iloc[0])
-    # # total = np.asarray([a*b for a,b in zip(shares,divedend)])
-    # # total = total.sum()
-    # # print total
-    # port_val = pos_val.sum(axis=1)
-    # tasi_val = normalize_data(tasi) * capital
-    # tasi_port = tasi_val.sum(axis=1)
-    # print 'Portofolio Stats'
-    # stats(port_val,beta)
-    # print 'TASI Stats'
-    # stats(tasi_port,1)
-    # calc_alpha(port_val,tasi_port,beta)
+            trades += 1
+    cagr = (((capital / 10000) ** (1 / float(N))) - 1) * 100
+    print index, postion, capital
+    print trades, N, cagr, CAGR
     # ax = df[stock].plot(label=stock)
     # df['MA'].plot(label='200 MA',ax=ax)
-    # # ax = port_val.plot(label='Portofolio')
-    # # tasi_port.plot(label='TASI',ax=ax)
     # ax.legend(loc="upper right")
     # plt.show()
-    # print 'Optimization'
-    # df = get_data(symbols, dates,'Close')
-    # df = df.drop('TASI',1)
-    # df = normalize_data(df)
-    # dr = compute_daily_returns(df)
-    # annual_returns = calc_annual_returns(dr)
-    # ar = annual_returns.mean().transpose()
-    # print ar 
-    # weights, returns, risks = optimal_portfolio(ar)
-    # print weights
-    # Forecasting
-    # forecast_out = int(math.ceil(0.01 * len(df)))
-
-    # df['label'] = df['4190'].shift(-forecast_out)
-    # forecast(df)
-    # dca = dollar_avg(df)
-    # get_max_price(df,symbols)
-    # daily_returns = compute_daily_returns(df)
-    # daily_returns. plot(kind='scatter',x='TASI',y='4190')
-    # beta_4300,alpha_4300 = np.polyfit(daily_returns['TASI'],daily_returns['4190'],1)
-    # print beta_4300
-    # print alpha_4300*252
-    # plt.plot(daily_returns['TASI'],beta_4300*daily_returns['TASI']+alpha_4300,'-',color='r')
-    
-    # print daily_returns.corr(method='pearson')
-    # df = get_data(symbols, dates,'Vol')
-    # get_mean_volume(df,symbols)
-    # plt.show()
-    
-    # Slice and plot
-    #plot_selected(normalize_data(df), ['TASI', '4300'], '01-01-2015', '31-12-2015')
-
-
 
 if __name__ == "__main__":
     test_run()
