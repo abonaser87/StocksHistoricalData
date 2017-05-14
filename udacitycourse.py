@@ -200,23 +200,26 @@ def optimal_portfolio(returns):
 
 def test_run():
     # Define a date range
-    dates = pd.date_range('01-01-1993', '31-07-2016')
-    divdates=range(1996,2017)
-    print divdates
+    dates = pd.date_range('01-01-2007', '31-07-2016')
+    divdates=range(2007,2017)
     N= (dates[-1]-dates[0])/365
     N = str(N).split()[0]
     # Choose stock symbols to read
 
-    symbols = ['TASI','2330','3010','3050','4190','4200','6070','2230','4260','1120','4300']
-    symbols2 = ['TASI']
-    alloc = [0,0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125]
+    symbols = ['TASI','1150','1120','2020','2330','3030','3040','3050','4001','4002','4008','4190','4200','4240','2270','6001','6002','4031','4110','4260','1820']
+    alloc = [0,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05]
     # Get stock data
     stock = 'TASI'
     df = get_data(symbols, dates,'Close')
-    df = df.resample('M')
+    # df = df.resample('M')
     # Divdended
     divdend = get_divdend(symbols,divdates)
-    print divdend
+    capital = 200000
+    shares = [x * capital for x in alloc]
+    shares = shares / df.iloc[0]
+    divdends = shares * divdend
+    # TODO: how to solve NAN shares if the stock have not traded yet , maybe it will be easier to adjust the price directly ? and implemnt a sum for the whole period
+    print divdends
     # calculate the stock CAGR
     CAGR = ((df[stock][-1]/df[stock][0])**(1/float(N))-1)*100
     # Moving Average
