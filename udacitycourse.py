@@ -219,6 +219,8 @@ def test_run():
     shares = [x * capital for x in alloc]
     shares = shares / df.iloc[0]
     divdends = shares * divdend
+    print divdends
+    divdends = divdends.sum(axis=1).sum(axis=0)
     # TODO: how to solve NAN shares if the stock have not traded yet , maybe it will be easier to adjust the price directly ? and implemnt a sum for the whole period
     print divdends
 
@@ -226,7 +228,7 @@ def test_run():
     # OptPort(df)
     # dca = dollar_avg(df)
     # BetaAlpha(dates, df, symbols)
-    # backtest(alloc, dates, df, symbols)
+    backtest(alloc, dates, df, symbols)
 
 
 def backtest(alloc, dates, df, symbols):
