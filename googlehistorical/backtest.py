@@ -28,12 +28,13 @@ def get_data(symbols, dates,col):
     df = pd.DataFrame(index=dates)
     if 'TASI' not in symbols:  # add SPY for reference, if absent
         symbols.insert(0, 'TASI')
-    dateparse = lambda x: pd.datetime.strptime(x, '%Y%m%d')
+    dateparse = lambda x: pd.datetime.strptime(x, '%Y-%m-%d')
     for symbol in symbols:
         df_temp = pd.read_csv(symbol_to_path(symbol), index_col='Date',
                 parse_dates=['Date'],date_parser=dateparse, usecols=['Date', col ], na_values=['nan'])
         df_temp = df_temp.rename(columns={col: symbol})
         df = df.join(df_temp)
+
         if symbol == 'TASI':  # drop dates SPY did not tradenumpy-1.11.1+mkl-cp27-cp27m-win32.whl
             df = df.dropna(subset=["TASI"])
 
@@ -231,35 +232,25 @@ def dailystratTest(N,df,stock):
 
 def test_run():
     # Define a date range
-    dates = pd.date_range('01-11-1995', '30-07-2016')
-    divdates=range(2007,2017)
+    dates = pd.date_range('2017-01-01', '2017-06-22 ')
     N= (dates[-1]-dates[0])/365
     N = str(N).split()[0]
 
     # Choose stock symbols to read
-    symbols = ['TASI','2330','3010','3050','4190','4200','6070','2230','4260']
-    alloc = [0,0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125]
+    symbols = ['TASI','4190','6004','4160','2360','8210','3050','4240','3040','2110','4009','1810','2330','2020','4008','6002','8010','1820','4031','4200','3060','8180','4260','4001','2270','4030','4006','2320','3010','4002','4110']
+    alloc = [0,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033]
 
     # Get stock data
     stock = 'TASI'
     df = get_data(symbols, dates,'Close')
 
     # Divdended
-    divdend = get_divdend(symbols,divdates)
-    capital = 200000
-    shares = [x * capital for x in alloc]
-    shares = shares / df.iloc[0]
-    divdends = shares * divdend
-    # print divdends
-    divdends = divdends.sum(axis=1).sum(axis=0)
-    # TODO: how to solve NAN shares if the stock have not traded yet , maybe it will be easier to adjust the price directly ? and implemnt a sum for the whole period
-    # print divdends
-    dailystratTest(N,df, stock)
+    # dailystratTest(N,df, stock)
     # MovingAvgTest(N, df, stock)
     # OptPort(df)
     # dca = dollar_avg(df)
     # BetaAlpha(dates, df, symbols)
-    # backtest(alloc, dates, df, symbols)
+    backtest(alloc, dates, df, symbols)
 
 
 def backtest(alloc, dates, df, symbols):
@@ -275,8 +266,8 @@ def backtest(alloc, dates, df, symbols):
     print 'TASI Stats'
     stats(tasi_port, 1)
     calc_alpha(port_val, tasi_port, beta)
-    # ax = port_val.plot(label='Portofolio')
-    # tasi_port.plot(label='TASI',ax=ax)
+    ax = port_val.plot(label='Portofolio')
+    tasi_port.plot(label='TASI',ax=ax)
     ax.legend(loc="upper right")
     plt.show()
 
