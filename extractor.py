@@ -1,6 +1,6 @@
 import csv
 import os
-bigfile = open('daily-1471-MEC_Saudi_All-2017_10_05.csv')
+bigfile = open('daily-5971-MEC_Saudi_All-2017_10_17.csv')
 cfile = csv.reader(bigfile)
 fieldnames=['Date','Open','High','Low','Close','Vol']
 temp=[]
@@ -14,6 +14,8 @@ for row in cfile:
 			outfile.writerow(fieldnames)
 		#temp variable to store the previous row
 		temp.append(row[0])
+		if cfile.line_num==2:
+			outfile.writerow(row[1:])
 		#if this is second line 
 		if not cfile.line_num==2:
 			# check if the ticker is the same
