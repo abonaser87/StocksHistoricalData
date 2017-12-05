@@ -11,7 +11,12 @@ for sheet in wb.get_sheet_names():
     if sheet.startswith("!"):
         continue
     cols = wSheet.columns
-    print sheet
+    x = str(wSheet.title)
+    try:
+        c.execute("INSERT INTO company (name) VALUES(?)",(x,))
+    except:
+        pass
+
     for col in cols:
         i = 1
         loop=True
@@ -21,7 +26,13 @@ for sheet in wb.get_sheet_names():
                 row = xy[1]
                 col = openpyxl.utils.column_index_from_string(xy[0])
                 while loop == True:
-                    print wSheet.cell(row = row+i,column=col).value
+                    try:
+                        c.execute("INSERT INTO statementRow (statementId,rowOrder,rowTitle) VALUES(?,?,?)",(1,i,wSheet.cell(row = row+i,column=col).value))
+                        print "success"
+                    except:
+                        print "fail"
+                        pass
+                    print i
                     i=i+1
                     if wSheet.cell(row = row+i,column=col).value == None:
                         loop = False
@@ -31,8 +42,11 @@ for sheet in wb.get_sheet_names():
                 row = xy[1]
                 col = openpyxl.utils.column_index_from_string(xy[0])
                 while loop == True:
-                    print wSheet.cell(row = row+i,column=col).value
-                    i=i+1
+                    try:
+                        c.execute("INSERT INTO statementRow (statementId,rowOrder,rowTitle) VALUES(?,?,?)",(2,i,wSheet.cell(row = row+i,column=col).value))
+                    except:
+                        pass
+                    i = i + 1
                     if wSheet.cell(row = row+i,column=col).value == None:
                         loop = False
 
@@ -41,10 +55,16 @@ for sheet in wb.get_sheet_names():
                 row = xy[1]
                 col = openpyxl.utils.column_index_from_string(xy[0])
                 while loop == True:
-                    print wSheet.cell(row=row + i, column=col).value
+                    try:
+                        c.execute("INSERT INTO statementRow (statementId,rowOrder,rowTitle) VALUES(?,?,?)",(3,i,wSheet.cell(row = row+i,column=col).value))
+                    except:
+                        pass
                     i = i + 1
                     if wSheet.cell(row=row + i, column=col).value == None or wSheet.cell(row=row+i-1, column=col).value == "Cash at End of Period":
                         loop = False
+conn.commit()
+c.close()
+conn.close()
 # def create_table():
 #     c.execute("""CREATE TABLE IF NOT EXISTS company (
 #     id      integer PRIMARY KEY,
