@@ -13,15 +13,16 @@ for sheet in wb.get_sheet_names():
     cols = wSheet.columns
     x = str(wSheet.title)
     try:
-        c.execute("INSERT INTO company (name) VALUES(?)",(x,))
+        c.execute("INSERT INTO company (name) VALUES(?)", (x,))
     except:
-        c.execute("SELECT id FROM company WHERE name=?",(x,))
+        c.execute("SELECT id FROM company WHERE name=?", (x,))
         companyId = c.fetchone()[0]
         pass
 
     for col in cols:
         i = 1
-        loop=True
+        j = 1
+        loop = True
         for cell in col:
             if cell.value == "BALANCE SHEET":
                 xy = openpyxl.utils.coordinate_from_string(cell.coordinate)
@@ -29,11 +30,29 @@ for sheet in wb.get_sheet_names():
                 col = openpyxl.utils.column_index_from_string(xy[0])
                 while loop == True:
                     try:
-                        c.execute("INSERT INTO statementRow (statementId,rowOrder,rowTitle) SELECT 1,"+str(i)+",\""+wSheet.cell(row = row+i,column=col).value+"\" WHERE NOT EXISTS(SELECT 1 FROM statementRow where statementId=1 AND rowOrder="+str(i)+" AND rowTitle=\""+wSheet.cell(row = row+i,column=col).value+"\")")
+                        c.execute("INSERT INTO statementRow (statementId,rowOrder,rowTitle) SELECT 1," + str(
+                            i) + ",\"" + wSheet.cell(row=row + i,
+                                                     column=col).value + "\" WHERE NOT EXISTS(SELECT 1 FROM statementRow where statementId=1 AND rowOrder=" + str(
+                            i) + " AND rowTitle=\"" + wSheet.cell(row=row + i, column=col).value + "\")")
                     except:
                         pass
-                    i=i+1
-                    if wSheet.cell(row = row+i,column=col).value == None:
+                    j = 1
+                    while wSheet.cell(row=row + i, column=col + j).value != None:
+                        amount = wSheet.cell(row=row + i, column=col + j).value
+                        date = wSheet.cell(row=row, column=col + j).value
+                        c.execute("SELECT id FROM statementRow WHERE rowTitle=? AND statementId=1",
+                                  (wSheet.cell(row=row + i, column=col).value,))
+                        sRowId = c.fetchone()[0]
+                        print companyId,sRowId,date,amount
+                        print j
+                        try:
+                            c.execute("INSERT INTO statementFact (companyId,statementRowId,date,amount) VALUES (?,?,?,?)",(companyId,sRowId,date,amount))
+                            conn.commit()
+                        except:
+                            pass
+                        j = j + 1
+                    i = i + 1
+                    if wSheet.cell(row=row + i, column=col).value == None:
                         loop = False
 
             if cell.value == "STATEMENT OF INCOME":
@@ -42,11 +61,14 @@ for sheet in wb.get_sheet_names():
                 col = openpyxl.utils.column_index_from_string(xy[0])
                 while loop == True:
                     try:
-                        c.execute("INSERT INTO statementRow (statementId,rowOrder,rowTitle) SELECT 2,"+str(i)+",\""+wSheet.cell(row = row+i,column=col).value+"\" WHERE NOT EXISTS(SELECT 1 FROM statementRow where statementId=2 AND rowOrder="+str(i)+" AND rowTitle=\""+wSheet.cell(row = row+i,column=col).value+"\")")
+                        c.execute("INSERT INTO statementRow (statementId,rowOrder,rowTitle) SELECT 2," + str(
+                            i) + ",\"" + wSheet.cell(row=row + i,
+                                                     column=col).value + "\" WHERE NOT EXISTS(SELECT 1 FROM statementRow where statementId=2 AND rowOrder=" + str(
+                            i) + " AND rowTitle=\"" + wSheet.cell(row=row + i, column=col).value + "\")")
                     except:
                         pass
                     i = i + 1
-                    if wSheet.cell(row = row+i,column=col).value == None:
+                    if wSheet.cell(row=row + i, column=col).value == None:
                         loop = False
 
             if cell.value == "CASH FLOW":
@@ -55,11 +77,15 @@ for sheet in wb.get_sheet_names():
                 col = openpyxl.utils.column_index_from_string(xy[0])
                 while loop == True:
                     try:
-                        c.execute("INSERT INTO statementRow (statementId,rowOrder,rowTitle) SELECT 3,"+str(i)+",\""+wSheet.cell(row = row+i,column=col).value+"\" WHERE NOT EXISTS(SELECT 1 FROM statementRow where statementId=3 AND rowOrder="+str(i)+" AND rowTitle=\""+wSheet.cell(row = row+i,column=col).value+"\")")
+                        c.execute("INSERT INTO statementRow (statementId,rowOrder,rowTitle) SELECT 3," + str(
+                            i) + ",\"" + wSheet.cell(row=row + i,
+                                                     column=col).value + "\" WHERE NOT EXISTS(SELECT 1 FROM statementRow where statementId=3 AND rowOrder=" + str(
+                            i) + " AND rowTitle=\"" + wSheet.cell(row=row + i, column=col).value + "\")")
                     except:
                         pass
                     i = i + 1
-                    if wSheet.cell(row=row + i, column=col).value == None or wSheet.cell(row=row+i-1, column=col).value == "Cash at End of Period":
+                    if wSheet.cell(row=row + i, column=col).value == None or wSheet.cell(row=row + i - 1,
+                                                                                         column=col).value == "Cash at End of Period":
                         loop = False
 conn.commit()
 c.close()
