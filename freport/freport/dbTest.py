@@ -15,6 +15,7 @@ for sheet in wb.get_sheet_names():
     try:
         c.execute("INSERT INTO company (name) VALUES(?)",(x,))
     except:
+
         pass
 
     for col in cols:
@@ -27,12 +28,9 @@ for sheet in wb.get_sheet_names():
                 col = openpyxl.utils.column_index_from_string(xy[0])
                 while loop == True:
                     try:
-                        c.execute("INSERT INTO statementRow (statementId,rowOrder,rowTitle) VALUES(?,?,?)",(1,i,wSheet.cell(row = row+i,column=col).value))
-                        print "success"
+                        c.execute("INSERT INTO statementRow (statementId,rowOrder,rowTitle) SELECT 1,"+str(i)+",\""+wSheet.cell(row = row+i,column=col).value+"\" WHERE NOT EXISTS(SELECT 1 FROM statementRow where statementId=1 AND rowOrder="+str(i)+" AND rowTitle=\""+wSheet.cell(row = row+i,column=col).value+"\")")
                     except:
-                        print "fail"
                         pass
-                    print i
                     i=i+1
                     if wSheet.cell(row = row+i,column=col).value == None:
                         loop = False
@@ -43,7 +41,7 @@ for sheet in wb.get_sheet_names():
                 col = openpyxl.utils.column_index_from_string(xy[0])
                 while loop == True:
                     try:
-                        c.execute("INSERT INTO statementRow (statementId,rowOrder,rowTitle) VALUES(?,?,?)",(2,i,wSheet.cell(row = row+i,column=col).value))
+                        c.execute("INSERT INTO statementRow (statementId,rowOrder,rowTitle) SELECT 2,"+str(i)+",\""+wSheet.cell(row = row+i,column=col).value+"\" WHERE NOT EXISTS(SELECT 1 FROM statementRow where statementId=2 AND rowOrder="+str(i)+" AND rowTitle=\""+wSheet.cell(row = row+i,column=col).value+"\")")
                     except:
                         pass
                     i = i + 1
@@ -56,7 +54,7 @@ for sheet in wb.get_sheet_names():
                 col = openpyxl.utils.column_index_from_string(xy[0])
                 while loop == True:
                     try:
-                        c.execute("INSERT INTO statementRow (statementId,rowOrder,rowTitle) VALUES(?,?,?)",(3,i,wSheet.cell(row = row+i,column=col).value))
+                        c.execute("INSERT INTO statementRow (statementId,rowOrder,rowTitle) SELECT 3,"+str(i)+",\""+wSheet.cell(row = row+i,column=col).value+"\" WHERE NOT EXISTS(SELECT 1 FROM statementRow where statementId=3 AND rowOrder="+str(i)+" AND rowTitle=\""+wSheet.cell(row = row+i,column=col).value+"\")")
                     except:
                         pass
                     i = i + 1
