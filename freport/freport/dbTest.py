@@ -15,7 +15,8 @@ for sheet in wb.get_sheet_names():
     try:
         c.execute("INSERT INTO company (name) VALUES(?)",(x,))
     except:
-
+        c.execute("SELECT id FROM company WHERE name=?",(x,))
+        companyId = c.fetchone()[0]
         pass
 
     for col in cols:
