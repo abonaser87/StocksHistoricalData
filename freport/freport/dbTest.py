@@ -37,18 +37,19 @@ for sheet in wb.get_sheet_names():
                     except:
                         pass
                     j = 1
-                    while wSheet.cell(row=row + i, column=col + j).value != None:
+                    while wSheet.cell(row=row, column=col + j).value != None:
                         amount = wSheet.cell(row=row + i, column=col + j).value
+                        if amount == "-":
+                            amount = 0
                         date = wSheet.cell(row=row, column=col + j).value
                         c.execute("SELECT id FROM statementRow WHERE rowTitle=? AND statementId=1",
                                   (wSheet.cell(row=row + i, column=col).value,))
                         sRowId = c.fetchone()[0]
-                        print companyId,sRowId,date,amount
-                        print j
                         try:
                             c.execute("INSERT INTO statementFact (companyId,statementRowId,date,amount) VALUES (?,?,?,?)",(companyId,sRowId,date,amount))
                             conn.commit()
-                        except:
+                        except sqlite3.Error as e:
+                            print e.message
                             pass
                         j = j + 1
                     i = i + 1
@@ -67,6 +68,22 @@ for sheet in wb.get_sheet_names():
                             i) + " AND rowTitle=\"" + wSheet.cell(row=row + i, column=col).value + "\")")
                     except:
                         pass
+                    j = 1
+                    while wSheet.cell(row=row, column=col + j).value != None:
+                        amount = wSheet.cell(row=row + i, column=col + j).value
+                        if amount == "-":
+                            amount = 0
+                        date = wSheet.cell(row=row, column=col + j).value
+                        c.execute("SELECT id FROM statementRow WHERE rowTitle=? AND statementId=2",
+                                  (wSheet.cell(row=row + i, column=col).value,))
+                        sRowId = c.fetchone()[0]
+                        try:
+                            c.execute("INSERT INTO statementFact (companyId,statementRowId,date,amount) VALUES (?,?,?,?)",(companyId,sRowId,date,amount))
+                            conn.commit()
+                        except sqlite3.Error as e:
+                            print e.message
+                            pass
+                        j = j + 1
                     i = i + 1
                     if wSheet.cell(row=row + i, column=col).value == None:
                         loop = False
@@ -83,6 +100,22 @@ for sheet in wb.get_sheet_names():
                             i) + " AND rowTitle=\"" + wSheet.cell(row=row + i, column=col).value + "\")")
                     except:
                         pass
+                    j = 1
+                    while wSheet.cell(row=row, column=col + j).value != None:
+                        amount = wSheet.cell(row=row + i, column=col + j).value
+                        if amount == "-":
+                            amount = 0
+                        date = wSheet.cell(row=row, column=col + j).value
+                        c.execute("SELECT id FROM statementRow WHERE rowTitle=? AND statementId=3",
+                                  (wSheet.cell(row=row + i, column=col).value,))
+                        sRowId = c.fetchone()[0]
+                        try:
+                            c.execute("INSERT INTO statementFact (companyId,statementRowId,date,amount) VALUES (?,?,?,?)",(companyId,sRowId,date,amount))
+                            conn.commit()
+                        except sqlite3.Error as e:
+                            print e.message
+                            pass
+                        j = j + 1
                     i = i + 1
                     if wSheet.cell(row=row + i, column=col).value == None or wSheet.cell(row=row + i - 1,
                                                                                          column=col).value == "Cash at End of Period":
