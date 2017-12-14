@@ -6,7 +6,6 @@ conn = sqlite3.connect('Test.db')
 c = conn.cursor()
 
 for sheet in wb.get_sheet_names():
-    # TODO: input the row headers into the database to populate the facts table
     wSheet = wb.get_sheet_by_name(sheet)
     if sheet.startswith("!"):
         continue

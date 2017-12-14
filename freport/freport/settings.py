@@ -73,12 +73,19 @@ WSGI_APPLICATION = 'freport.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
+DATABASE_ROUTERS = ['dbmaker.routers.DatabaseAppsRouter']
+DATABASE_APPS_MAPPING = {'dbmaker': 'freport'}
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    },
+    'freport': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'freport/Test.db'),
     }
+
 }
 
 
