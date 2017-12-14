@@ -7,6 +7,8 @@ class Company(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(unique=True, max_length=255, blank=True, null=True)
 
+    def __str__(self):
+        return self.name
     class Meta:
         managed = False
         app_label = 'dbmaker'
@@ -17,6 +19,8 @@ class Statement(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255, blank=True, null=True)
 
+    def __str__(self):
+        return self.name
     class Meta:
         managed = False
         app_label = 'dbmaker'
@@ -31,6 +35,8 @@ class StatementRow(models.Model):
     rowProperties = models.CharField(max_length=255, blank=True, null=True)
     statementId = models.ForeignKey(Statement, db_column='statementId')
 
+    def __str__(self):
+        return self.rowTitle
     class Meta:
         app_label = 'dbmaker'
         db_table = 'statementRow'
@@ -43,6 +49,8 @@ class StatementFact(models.Model):
     date = models.DateField()
     amount = models.FloatField(blank=True, null=True)
 
+    def __str__(self):
+        return self.amount
     class Meta:
         db_table = 'statementFact'
         app_label = 'dbmaker'
