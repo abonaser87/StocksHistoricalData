@@ -46,11 +46,12 @@ class StatementRow(models.Model):
 class StatementFact(models.Model):
     companyId = models.ForeignKey(Company, db_column='companyId')
     statementRowId = models.ForeignKey(StatementRow, db_column='statementRowId')
-    date = models.DateField()
+    entrydate = models.DateField(null=False,db_column='entrydate')
     amount = models.FloatField(blank=True, null=True)
 
     def __str__(self):
-        return self.amount
+        return 'Date = {} , Amount = {}'.format(self.entrydate,str(self.amount))
     class Meta:
+        managed = False
         db_table = 'statementFact'
         app_label = 'dbmaker'

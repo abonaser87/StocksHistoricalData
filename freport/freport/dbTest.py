@@ -1,20 +1,57 @@
 import sqlite3
 import openpyxl
+import datetime
+from umalqurra.hijri_date import HijriDate
 
-wb = openpyxl.load_workbook('FR.xlsx')
+wb = openpyxl.load_workbook('FR.xlsx',data_only=True)
 conn = sqlite3.connect('Test.db')
 c = conn.cursor()
+
+def create_table():
+    c.execute("""CREATE TABLE IF NOT EXISTS company (
+    id      integer PRIMARY KEY,
+    name    varchar(255)
+)""")
+    c.execute("""CREATE TABLE IF NOT EXISTS statement (
+    id      integer PRIMARY KEY,
+    name    varchar(255)
+)""")
+    c.execute("""CREATE TABLE IF NOT EXISTS statementRow (
+    id      integer  PRIMARY KEY,
+    statementId integer ,
+    rowOrder  integer ,
+    rowTitle  varchar(255) ,
+    rowDescription varchar(255) NULL,
+    rowProperties varchar(255) NULL,
+    FOREIGN KEY (statementId) REFERENCES statement (id)
+)""")
+
+    c.execute("""CREATE TABLE IF NOT EXISTS statementFact (
+    id integer PRIMARY KEY,
+    companyId      integer ,
+    statementRowId integer ,
+    entrydate         date ,
+    amount         numeric ,
+    FOREIGN KEY (companyId) REFERENCES company (id),
+    FOREIGN KEY (statementRowId) REFERENCES statementRow (id)
+)""")
+
+
+create_table()
+
 
 for sheet in wb.get_sheet_names():
     wSheet = wb.get_sheet_by_name(sheet)
     if sheet.startswith("!"):
         continue
     cols = wSheet.columns
-    x = str(wSheet.title)
+    companyId = str(wSheet.title)
     try:
-        c.execute("INSERT INTO company (name) VALUES(?)", (x,))
+        c.execute("INSERT INTO company (name) VALUES(?)", (companyId,))
+        c.execute("SELECT id FROM company WHERE name=?", (companyId,))
+        companyId = c.fetchone()[0]
     except:
-        c.execute("SELECT id FROM company WHERE name=?", (x,))
+        c.execute("SELECT id FROM company WHERE name=?", (companyId,))
         companyId = c.fetchone()[0]
         pass
 
@@ -40,12 +77,13 @@ for sheet in wb.get_sheet_names():
                         amount = wSheet.cell(row=row + i, column=col + j).value
                         if amount == "-":
                             amount = 0
-                        date = wSheet.cell(row=row, column=col + j).value
+                        entrydate = wSheet.cell(row=row, column=col + j).value
+                        entrydate = entrydate.strftime("%Y-%m-%d")
                         c.execute("SELECT id FROM statementRow WHERE rowTitle=? AND statementId=1",
                                   (wSheet.cell(row=row + i, column=col).value,))
                         sRowId = c.fetchone()[0]
                         try:
-                            c.execute("INSERT INTO statementFact (companyId,statementRowId,date,amount) VALUES (?,?,?,?)",(companyId,sRowId,date,amount))
+                            c.execute("INSERT INTO statementFact (companyId,statementRowId,entrydate,amount) VALUES (?,?,?,?)",(companyId,sRowId,entrydate,amount))
                             conn.commit()
                         except sqlite3.Error as e:
                             print e.message
@@ -72,12 +110,13 @@ for sheet in wb.get_sheet_names():
                         amount = wSheet.cell(row=row + i, column=col + j).value
                         if amount == "-":
                             amount = 0
-                        date = wSheet.cell(row=row, column=col + j).value
+                        entrydate = wSheet.cell(row=row, column=col + j).value
+                        entrydate = entrydate.strftime("%Y-%m-%d")
                         c.execute("SELECT id FROM statementRow WHERE rowTitle=? AND statementId=2",
                                   (wSheet.cell(row=row + i, column=col).value,))
                         sRowId = c.fetchone()[0]
                         try:
-                            c.execute("INSERT INTO statementFact (companyId,statementRowId,date,amount) VALUES (?,?,?,?)",(companyId,sRowId,date,amount))
+                            c.execute("INSERT INTO statementFact (companyId,statementRowId,entrydate,amount) VALUES (?,?,?,?)",(companyId,sRowId,entrydate,amount))
                             conn.commit()
                         except sqlite3.Error as e:
                             print e.message
@@ -104,12 +143,13 @@ for sheet in wb.get_sheet_names():
                         amount = wSheet.cell(row=row + i, column=col + j).value
                         if amount == "-":
                             amount = 0
-                        date = wSheet.cell(row=row, column=col + j).value
+                        entrydate = wSheet.cell(row=row, column=col + j).value
+                        entrydate = entrydate.strftime("%Y-%m-%d")
                         c.execute("SELECT id FROM statementRow WHERE rowTitle=? AND statementId=3",
                                   (wSheet.cell(row=row + i, column=col).value,))
                         sRowId = c.fetchone()[0]
                         try:
-                            c.execute("INSERT INTO statementFact (companyId,statementRowId,date,amount) VALUES (?,?,?,?)",(companyId,sRowId,date,amount))
+                            c.execute("INSERT INTO statementFact (companyId,statementRowId,entrydate,amount) VALUES (?,?,?,?)",(companyId,sRowId,entrydate,amount))
                             conn.commit()
                         except sqlite3.Error as e:
                             print e.message
@@ -122,35 +162,4 @@ for sheet in wb.get_sheet_names():
 conn.commit()
 c.close()
 conn.close()
-# def create_table():
-#     c.execute("""CREATE TABLE IF NOT EXISTS company (
-#     id      integer PRIMARY KEY,
-#     name    varchar(255)
-# )""")
-#     c.execute("""CREATE TABLE IF NOT EXISTS statement (
-#     id      integer PRIMARY KEY,
-#     name    varchar(255)
-# )""")
-#     c.execute("""CREATE TABLE IF NOT EXISTS statementRow (
-#     id      integer  PRIMARY KEY,
-#     statementId integer ,
-#     rowOrder  integer ,
-#     rowTitle  varchar(255) ,
-#     rowDescription varchar(255) NULL,
-#     rowProperties varchar(255) NULL,
-#     FOREIGN KEY (statementId) REFERENCES statement (id)
-# )""")
-#
-#     c.execute("""CREATE TABLE IF NOT EXISTS statementFact (
-#     companyId      integer ,
-#     statementRowId integer ,
-#     date         date ,
-#     amount         numeric ,
-#     PRIMARY KEY (date, statementRowId),
-#     FOREIGN KEY (companyId) REFERENCES company (id),
-#     FOREIGN KEY (statementRowId) REFERENCES statementRow (id)
-# )""")
-#
-#
-# create_table()
 # Dynamically add data from excel sheet
