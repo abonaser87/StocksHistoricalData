@@ -15,11 +15,11 @@ def index(request):
     return HttpResponse(template.render(context, request))
 
 
-def balancesheet(request):
-    template = loader.get_template('dbmaker/balancesheet.html')
+def report(request,statement_id,company_id):
+    template = loader.get_template('dbmaker/statement.html')
     dict = {}
-    rows = StatementRow.objects.filter(statementId=1)
-    dates = StatementFact.objects.filter(companyId=1,statementRowId__in=StatementRow.objects.filter(statementId=1))
+    rows = StatementRow.objects.filter(statementId=statement_id)
+    dates = StatementFact.objects.filter(companyId=company_id,statementRowId__in=StatementRow.objects.filter(statementId=statement_id))
     temp=[]
     facts=[]
     for date in dates:

@@ -5,6 +5,6 @@ from django.contrib import admin
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^balancesheet/$', views.balancesheet ,name='balancesheet'),
+    url(r'^report/(?P<company_id>[0-9]+)/(?P<statement_id>[0-9]+)', views.report, name='statement'),
     url(r'^$', views.index , name='index')
 ]
