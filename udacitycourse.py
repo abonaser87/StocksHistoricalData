@@ -9,8 +9,8 @@ import math
 # from sklearn.linear_model import LinearRegression
 import scipy as sp
 import scipy.optimize as scopt
-import cvxopt as opt
-from cvxopt import blas, solvers
+# import cvxopt as opt
+# from cvxopt import blas, solvers
 
 def plot_selected(df, columns, start_index, end_index):
     """Plot the desired columns over index values in the given range."""
@@ -34,7 +34,7 @@ def get_data(symbols, dates,col):
                 parse_dates=['Date'],date_parser=dateparse, usecols=['Date', col ], na_values=['nan'])
         df_temp = df_temp.rename(columns={col: symbol})
         df = df.join(df_temp)
-        if symbol == 'TASI':  # drop dates SPY did not tradenumpy-1.11.1+mkl-cp27-cp27m-win32.whl
+        if symbol == 'TASI':  # drop dates SPY did not trade
             df = df.dropna(subset=["TASI"])
 
     return df
