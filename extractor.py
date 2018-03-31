@@ -1,6 +1,6 @@
 import csv
 import os
-bigfile = open('daily-5971-MEC_Saudi_All-2017_10_17.csv')
+bigfile = open('daily-7638-MEC_Saudi_All-2018_03_29.csv')
 cfile = csv.reader(bigfile)
 fieldnames=['Date','Open','High','Low','Close','Vol']
 temp=[]
