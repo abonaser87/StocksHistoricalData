@@ -9,8 +9,8 @@ import math
 # from sklearn.linear_model import LinearRegression
 import scipy as sp
 import scipy.optimize as scopt
-import cvxopt as opt
-from cvxopt import blas, solvers
+# import cvxopt as opt
+# from cvxopt import blas, solvers
 
 def plot_selected(df, columns, start_index, end_index):
     """Plot the desired columns over index values in the given range."""
@@ -235,22 +235,28 @@ def test_run():
     dates = pd.date_range('2017-01-01', '2017-06-22 ')
     N= (dates[-1]-dates[0])/365
     N = str(N).split()[0]
+    files = os.listdir("Daily")
+    symbols=[]
+    for name in files:
+        if name[0].isdigit():
+            symbols.append(name.split('.')[0])
 
+    print symbols
     # Choose stock symbols to read
-    symbols = ['TASI','4190','6004','4160','2360','8210','3050','4240','3040','2110','4009','1810','2330','2020','4008','6002','8010','1820','4031','4200','3060','8180','4260','4001','2270','4030','4006','2320','3010','4002','4110']
-    alloc = [0,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033]
+    # symbols = ['TASI','4190','6004','4160','2360','8210','3050','4240','3040','2110','4009','1810','2330','2020','4008','6002','8010','1820','4031','4200','3060','8180','4260','4001','2270','4030','4006','2320','3010','4002','4110']
+    # alloc = [0,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033,0.033]
 
     # Get stock data
     stock = 'TASI'
     df = get_data(symbols, dates,'Close')
-
+    print len(symbols)
     # Divdended
     # dailystratTest(N,df, stock)
     # MovingAvgTest(N, df, stock)
     # OptPort(df)
     # dca = dollar_avg(df)
     # BetaAlpha(dates, df, symbols)
-    backtest(alloc, dates, df, symbols)
+    # backtest(alloc, dates, df, symbols)
 
 
 def backtest(alloc, dates, df, symbols):
