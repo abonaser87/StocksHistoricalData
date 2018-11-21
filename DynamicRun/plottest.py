@@ -1,5 +1,6 @@
 import os,sys
 import re
+# TODO: Update the file to work with version 33
 def convert():
     psspy.cong(0)
     psspy.conl(0,1,1,[0,0],[ 100.0,0.0,0.0, 100.0])
@@ -95,7 +96,7 @@ def solve(savfile,fault,zone,outfile):
     psspy.case(savfile)
     convert()
     psspy.dyre_new([1,1,1,1],r"""SEC-2019 _11Nov2015-newX.dyr""","","","")
-    psspy.dynamics_solution_param_2(intgar1=200,realar1=0.4,realar3=0.0008333,realar4=0.0033333)
+    psspy.dynamics_solution_param_2(intgar1=100,realar1=0.4,realar3=0.0008333)
     psspy.set_netfrq(1)
     psspy.set_relscn(1)
     psspy.bsys(1,0,[0.0, 380.],0,[],0,[],0,[],1,[zone])
