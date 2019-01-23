@@ -64,7 +64,7 @@ os.chdir(target_folder)
 zone=110
 fault=11925
 psspy.dyre_new([1,1,1,1],r"""SEC-2019 _11Nov2015-newX.dyr""","","","")
-psspy.dynamics_solution_param_2([200,_i,_i,_i,_i,_i,_i,_i],[ 0.4,_f, 0.0008333, 0.0033333,_f,_f,_f,_f])
+psspy.dynamics_solution_param_2([100,_i,_i,_i,_i,_i,_i,_i],[ 0.4,_f, 0.0008333, _f,_f,_f,_f,_f])
 psspy.set_netfrq(1)
 psspy.set_relscn(1)
 psspy.bsys(1,0,[0.0, 380.],0,[],0,[],0,[],1,[zone])
