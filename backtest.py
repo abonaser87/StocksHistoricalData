@@ -229,9 +229,7 @@ def dailystratTest(N,df,stock):
     print index, postion, capital
     print trades, N, cagr , CAGR
 
-
-def test_run():
-    # Define a date range
+def load_df():
     dates = pd.date_range('01/01/2002', '01/01/2003')
     N= (dates[-1]-dates[0])/365
     N = str(N).split()[0]
@@ -240,7 +238,13 @@ def test_run():
     for name in files:
         if name[0].isdigit():
             symbols.append(name.split('.')[0])
+    df = get_data(symbols, dates, 'Close')
+    df.to_pickle('database.pkl')
+    return df
 
+
+def test_run():
+    # Define a date range
 
     # Choose stock symbols to read
     # symbols = ['TASI','4190','6004','4160','2360','8210','3050','4240','3040','2110','4009','1810','2330','2020','4008','6002','8010','1820','4031','4200','3060','8180','4260','4001','2270','4030','4006','2320','3010','4002','4110']
@@ -248,7 +252,12 @@ def test_run():
 
     # Get stock data
     stock = 'TASI'
-    df = get_data(symbols, dates,'Close')
+    try:
+        df = pd.read_pickle('database.pkl')
+    except:
+        print 'No pkl'
+        df = load_df()
+
 
     # Drop columns with nan values
     mask = df.iloc[0].isin(['NaN'])
@@ -256,8 +265,12 @@ def test_run():
     # fill nan when the stock is not trading for a day due to any reason
     df = df.fillna(method='ffill')
     df = df.resample('W').mean()
-
-    df.to_excel("Weeklyprices.xlsx")
+    pctReturn = (df.iloc[-1] / df.min())-1
+    pctReturn = pctReturn.sort_values()
+    print pctReturn
+    # TODO : Segment to quartiles and think about how can we test each portfolio to see which preform the best and maybe we can segment to thirds or quintiles and see which is best
+    # df.min().to_excel('52min.xlsx')
+    # df.to_excel("Weeklyprices.xlsx")
     # Divdended
     # dailystratTest(N,df, stock)
     # MovingAvgTest(N, df, stock)
