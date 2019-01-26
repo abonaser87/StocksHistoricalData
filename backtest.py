@@ -230,7 +230,7 @@ def dailystratTest(N,df,stock):
     print trades, N, cagr , CAGR
 
 def load_df():
-    dates = pd.date_range('01/01/2002', '01/01/2003')
+    dates = pd.date_range('01/01/2002', '01/01/2017')
     N= (dates[-1]-dates[0])/365
     N = str(N).split()[0]
     files = os.listdir("AdjDaily")
@@ -260,7 +260,7 @@ def test_run():
 
 
     # Drop columns with nan values
-    mask = df.iloc[0].isin(['NaN'])
+    mask = df.iloc[0].isnull()
     df = df.loc[:,~mask]
     # fill nan when the stock is not trading for a day due to any reason
     df = df.fillna(method='ffill')
