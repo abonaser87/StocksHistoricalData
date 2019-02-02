@@ -76,7 +76,7 @@ j=52
 i=1
 k=0
 while k <= len(df):
-    data['Week'+str(i)] = df[k:j]
+    data['Year'+str(i)] = df[k:j]
     k=j
     j+=52
     i+=1
@@ -84,16 +84,16 @@ while k <= len(df):
 i=1
 pctReturn = OrderedDict()
 while i <= len(data):
-    mask = data['Week'+str(i)].iloc[0].isnull()
-    data['Week'+str(i)] = data['Week'+str(i)].loc[:,~mask]
-    data['Week'+str(i)] = data['Week'+str(i)].fillna(method='ffill')
-    data['Week'+str(i)].to_excel('Week'+str(i)+'.xlsx')
-    data['Week'+str(i)].min().to_excel('Min Week'+str(i)+'.xlsx')
-    pctReturn['Week'+str(i)] = (data['Week'+str(i)].iloc[-1] / data['Week'+str(i)].min())-1
-    pctReturn['Week'+str(i)]= pctReturn['Week'+str(i)].sort_values()
+    mask = data['Year'+str(i)].iloc[0].isnull()
+    data['Year'+str(i)] = data['Year'+str(i)].loc[:,~mask]
+    data['Year'+str(i)] = data['Year'+str(i)].fillna(method='ffill')
+    data['Year'+str(i)].to_excel('Year'+str(i)+'.xlsx')
+    data['Year'+str(i)].min().to_excel('Min Year'+str(i)+'.xlsx')
+    pctReturn['Year'+str(i)] = (data['Year'+str(i)].iloc[-1] / data['Year'+str(i)].min())-1
+    pctReturn['Year'+str(i)]= pctReturn['Year'+str(i)].sort_values()
     i+=1
 
-# Divide to Quartiles and get the last week price
+# Divide to Quartiles and get the last Year price
 w=1
 qNum=1
 q=4
@@ -102,18 +102,18 @@ k=1
 quartiles = OrderedDict()
 
 while w <= len(pctReturn):
-    numInQuartile = np.round(len(pctReturn['Week'+str(w)])/float(q))
+    numInQuartile = np.round(len(pctReturn['Year'+str(w)])/float(q))
     i=0
     while qNum <= q:
         x = int(numInQuartile*qNum)
-        quartiles['Week'+str(w)+'Q'+str(qNum)] = [pctReturn['Week'+str(w)][int(j):x].index]
+        quartiles['Year'+str(w)+'Q'+str(qNum)] = [pctReturn['Year'+str(w)][int(j):x].index]
         qNum+=1
         j+=numInQuartile
 #     qNum=1
-#     while i < len(pctReturn['Week'+str(w)]):
-#         price = data['Week'+str(w)][pctReturn['Week'+str(w)].index[i]].iloc[-1]
-#         index = pctReturn['Week'+str(w)].index[i]
-#         quartiles['Week'+str(w)+'Q'+str(qNum)].loc[index]=price
+#     while i < len(pctReturn['Year'+str(w)]):
+#         price = data['Year'+str(w)][pctReturn['Year'+str(w)].index[i]].iloc[-1]
+#         index = pctReturn['Year'+str(w)].index[i]
+#         quartiles['Year'+str(w)+'Q'+str(qNum)].loc[index]=price
 
 #         if k == numInQuartile:
 #             qNum+=1
@@ -136,15 +136,15 @@ while w <= len(data):
     test = pd.DataFrame()
     while qNum <= q:
         if w > 2 :
-            capital = portfolios['Week'+str(w-1)]['Q'+str(qNum)].iloc[-1]
-        stocks = quartiles['Week' + str(w-1) + 'Q'+str(qNum)][0]
-        cond = [c for c in data['Week'+str(w)].columns if c not in stocks]
-        df_temp = normalize_data(data['Week'+str(w)].drop(cond,axis=1)).dropna(axis=1) * (1.0/len(stocks)) * capital
+            capital = portfolios['Year'+str(w-1)]['Q'+str(qNum)].iloc[-1]
+        stocks = quartiles['Year' + str(w-1) + 'Q'+str(qNum)][0]
+        cond = [c for c in data['Year'+str(w)].columns if c not in stocks]
+        df_temp = normalize_data(data['Year'+str(w)].drop(cond,axis=1)).dropna(axis=1) * (1.0/len(stocks)) * capital
         df_temp = df_temp.sum(axis=1)
         df_temp = df_temp.rename('Q'+str(qNum))
         df_temp = df_temp.to_frame()
         test = test.join(df_temp, how='outer')
-        portfolios['Week'+str(w)] = test
+        portfolios['Year'+str(w)] = test
         qNum+=1
     w+=1
     qNum=1
