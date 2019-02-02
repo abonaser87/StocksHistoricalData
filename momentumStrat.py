@@ -71,3 +71,8 @@ tasi = df['TASI'].copy()
 df = df.drop('TASI',axis=1)
 
 returns = compute_daily_returns(df)
+def multi_period_return(period_returns):
+    return np.prod(period_returns + 1) - 1
+
+test = returns.rolling(8).apply(multi_period_return)
+print test
