@@ -74,5 +74,12 @@ returns = compute_daily_returns(df)
 def multi_period_return(period_returns):
     return np.prod(period_returns + 1) - 1
 
+lookback = 11
+holdPeriod = 3
 test = returns.rolling(8).apply(multi_period_return)
+test = test[lookback:]
+mask = test.iloc[0].isnull()
+test = test.loc[:,~mask]
 print test
+sorteddf = test.sort_values(by=test.index.values[0], ascending=False, axis=1)
+print sorteddf
