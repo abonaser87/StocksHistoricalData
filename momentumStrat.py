@@ -76,7 +76,7 @@ def multi_period_return(period_returns):
 
 lookback = 11
 holdPeriod = 3
-test = returns.rolling(8).apply(multi_period_return)
+test = returns.rolling(lookback).apply(multi_period_return)
 test = test[lookback:]
 mask = test.iloc[0].isnull()
 test = test.loc[:,~mask]

@@ -95,7 +95,7 @@ def latest_psse_location():
 def solve(savfile,fault,zone,outfile):
     psspy.case(savfile)
     convert()
-    psspy.dyre_new([1,1,1,1],r"""SEC-2019 _11Nov2015-newX.dyr""","","","")
+    psspy.dyre_new([1, 1, 1, 1], r"""Case/SEC-2022_8Feb2018.dyr""", "", "", "")
     psspy.dynamics_solution_param_2(intgar1=100,realar1=0.4,realar3=0.0008333)
     psspy.set_netfrq(1)
     psspy.set_relscn(1)
@@ -117,7 +117,9 @@ def solve(savfile,fault,zone,outfile):
     psspy.run(0, 1.0,600,0,31)
     psspy.run(0, 5.0,600,0,51)
     psspy.close_report()
-pssedir = latest_psse_location()
+
+
+pssedir = 'C:\Program Files (x86)\PTI\PSSE32'
 pssedir = str(pssedir)              # convert unicode to str
 
 # =============================================================================================
@@ -143,7 +145,7 @@ target_folder=os.path.dirname(sys.argv[0])  # script directory
 os.chdir(target_folder)
 
 outfile = '8804SVC200-2020.out'
-savfile = 'SEC-2019 Peak Base Case_11Nov2015_557MW8804SVCONLY2025.sav'
+savfile = 'Case/SEC-2022_Peak Base Case_5Feb2018_511MW.sav'
 zone=110
 fault=11925
 
@@ -151,6 +153,8 @@ solve(savfile,fault,zone,outfile)
 
 channels = dyntools.CHNF(outfile)
 sh_ttl, ch_id, ch_data = channels.get_data()
+print ch_id
+print ch_data
 channels.txtout(channels=[20,35,36],txtfile='voltages.txt')
 channels.txtout(channels=[170,171],txtfile='speeds.txt')
 channels.txtout(channels=[241],txtfile='svc.txt')
