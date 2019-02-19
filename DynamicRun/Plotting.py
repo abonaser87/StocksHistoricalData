@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 target_folder=os.path.dirname(sys.argv[0])  # script directory
 os.chdir(target_folder)
 year = '2022'
-fault = '9030 Transformer Outage'
+fault = '9037-8602 Outage'
 outFolder='Figuers/'
 ######################
 # PLOT VOLTAGES      #
@@ -116,50 +116,50 @@ plt.suptitle(year +' MotorSpeed , '+ fault)
 plt.savefig(outFolder+year +' MotorSpeed , '+ fault+' .png')
 plt.close()
 
-######################
-# PLOT SVC        #
-######################
-infile=open('Channels/svc.txt')
-var = []
-for lines in infile:      # go through the input file, one line at a time
-    lines = lines.split(None,0)
-    for line in lines:
-        if line.startswith('Time(s)'):
-            names=line.split('Time(s)')
-            names = names[1].split('SVC')[0][:-6] 
-        elif re.match('^\d\.\d',line)or line.startswith('0 ') :
-            var.append(line.split())
-        else:
-            continue            
-outfile=open('Channels/svc.csv','w')
-i = 1
-for name in names:
-    if i == len(names):
-        outfile.write(name[:-4].strip())
-        continue
-    if name==' ':
-        outfile.write('Time,')
-        i=i+1
-        continue
-    outfile.write(name[:-4].strip()+',')
-    i=i+1
-for time in var:
-    outfile.write('\n')
-    i = 1
-    for k in time:
-        if i == len(time):
-            outfile.write(str(k))
-            continue
-        outfile.write(str(k)+',')
-        i = i + 1
+# ######################
+# # PLOT SVC        #
+# ######################
+# infile=open('Channels/svc.txt')
+# var = []
+# for lines in infile:      # go through the input file, one line at a time
+#     lines = lines.split(None,0)
+#     for line in lines:
+#         if line.startswith('Time(s)'):
+#             names=line.split('Time(s)')
+#             names = names[1].split('SVC')[0][:-6] 
+#         elif re.match('^\d\.\d',line)or line.startswith('0 ') :
+#             var.append(line.split())
+#         else:
+#             continue            
+# outfile=open('Channels/svc.csv','w')
+# i = 1
+# for name in names:
+#     if i == len(names):
+#         outfile.write(name[:-4].strip())
+#         continue
+#     if name==' ':
+#         outfile.write('Time,')
+#         i=i+1
+#         continue
+#     outfile.write(name[:-4].strip()+',')
+#     i=i+1
+# for time in var:
+#     outfile.write('\n')
+#     i = 1
+#     for k in time:
+#         if i == len(time):
+#             outfile.write(str(k))
+#             continue
+#         outfile.write(str(k)+',')
+#         i = i + 1
 
-data = pd.read_csv('Channels/svc.csv',index_col='Time')
-data.plot()
+# data = pd.read_csv('Channels/svc.csv',index_col='Time')
+# data.plot()
 
-plt.xlabel('Time')
-plt.ylabel('SVC Output')
-plt.legend(loc='lower right')
-plt.xlim([0,5])
-plt.suptitle(year +' SVC Output , '+ fault)
-plt.savefig(outFolder+year +' SVC Output , '+ fault+'.png')
-plt.close()
+# plt.xlabel('Time')
+# plt.ylabel('SVC Output')
+# plt.legend(loc='lower right')
+# plt.xlim([0,5])
+# plt.suptitle(year +' SVC Output , '+ fault)
+# plt.savefig(outFolder+year +' SVC Output , '+ fault+'.png')
+# plt.close()
