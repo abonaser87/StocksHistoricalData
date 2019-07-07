@@ -1,6 +1,7 @@
 import os, sys
 import re
-
+import pandas as pd
+import matplotlib.pyplot as plt
 
 def convert():
     psspy.cong(0)
@@ -75,33 +76,6 @@ def svcChannels(zone):
     psspy.close_report()
 
 
-def latest_psse_location():
-    import _winreg
-    ptiloc = r"SOFTWARE\PTI"
-    ptikey = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, ptiloc, 0, _winreg.KEY_READ)
-    ptikeyinfo = _winreg.QueryInfoKey(ptikey)
-    numptisubkeys = ptikeyinfo[0]
-    vdict = {}
-    for i in range(numptisubkeys):
-        vernum = _winreg.EnumKey(ptikey, i)
-        try:
-            n = int(vernum[-2:])
-            vdict[n] = vernum
-        except:
-            pass
-
-    vers = vdict.keys()
-    vers.sort()
-    k = vers[-1]
-    lver = vdict[k]
-    lverloc = ptiloc + "\\" + lver + "\\" + "Product Paths"
-    lverkey = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, lverloc, 0, _winreg.KEY_READ)
-    lverdir, stype = _winreg.QueryValueEx(lverkey, 'PsseInstallPath')
-    _winreg.CloseKey(ptikey)
-    _winreg.CloseKey(lverkey)
-    return lverdir
-
-
 def solve(savfile, fault, zone, outfile,dyrefile):
     psspy.case(savfile)
     convert()
@@ -110,8 +84,7 @@ def solve(savfile, fault, zone, outfile,dyrefile):
     psspy.addmodellibrary(r"""D:\D old drives\SEC\Work\Studies\9006 Retirement\dsusr.dll""")
     psspy.dyre_new([1, 1, 1, 1], dyrefile, "", "", "")
     psspy.dynamics_solution_param_2(intgar1=200, realar1=0.4, realar3=0.0008333, realar4=0.0033333)
-    psspy.set_netfrq(1)
-    psspy.set_relscn(1)
+    psspy.set_relang(1, 0, "")
     psspy.bsys(1, 0, [0.0, 380.], 0, [], 0, [], 0, [], len(zone), zone)
     psspy.chsb(1, 0, [-1, -1, -1, 1, 13, 0])
     dataextract(zone)
@@ -124,8 +97,8 @@ def solve(savfile, fault, zone, outfile,dyrefile):
     psspy.dist_scmu_fault([0, 0, 1, fault], [0.0, 0.0, 0.0, 0.0])
     psspy.run(0, 0.21667, 600, 0, 11)
     psspy.dist_clear_fault(1)
-    psspy.dist_3wind_trip(11937,19037,193371,r"""1""")
-    # psspy.dist_branch_trip(fault, 18602, r"""1""")
+    # psspy.dist_3wind_trip(fault,19059,193591,r"""1""")
+    psspy.dist_branch_trip(fault, 18914, r"""1""")
     # psspy.dist_machine_trip(177691,r"""5""")
     psspy.set_osscan(1, 0)
     psspy.set_vltscn(1, 1.15, 0.8)
@@ -172,10 +145,19 @@ def checkmotorstalled(channels,outfile):
 
 
 def getStalled():
+    data = pd.read_csv('Channels/AllSpeeds.csv',index_col='Time')
+    check = data.iloc[0]-data.iloc[-1]
+    check = check.loc[check>0.01]
+    print check
+    check = check.index.tolist()
+    outfile = open('Channels/stalling.txt','w')
+    for i in check:
+        outfile.write(str(i)+' ')
+    outfile.close()
     infile = open('Channels/stalling.txt')
     for lines in infile:
         lines = lines.split()
-    chNum = []
+    chNum=[]
     for i in lines:
         chNum.append(int(i))
     return chNum
@@ -187,6 +169,7 @@ def getKeysByValues(dictOfElements, listOfValues):
     listOfKeys = list()
     listOfItems = dictOfElements.items()
     for item  in listOfItems:
+        print item
         try:
             if re.search('|'.join(listOfValues),item[1]):
                 listOfKeys.append(item[0])
@@ -195,7 +178,7 @@ def getKeysByValues(dictOfElements, listOfValues):
     return  listOfKeys
 
 
-pssedir = 'C:\Program Files (x86)\PTI\PSSE32'
+pssedir = 'C:\Program Files (x86)\PTI\PSSE33'
 pssedir = str(pssedir)  # convert unicode to str
 
 # =============================================================================================
@@ -231,13 +214,14 @@ except OSError:
     print'Error creating directory'
     pass
 
-outfile = 'Output/9006Retirment-TransformerOutage.out'
-savfile = 'D:\\D old drives\\SEC\\Work\\Studies\\9006 Retirement\\SEC-2022_Peak Base Case_5Feb2018_511MW-Without 9006-No 8530.sav'
-dyrefile = 'D:\\D old drives\\SEC\\Work\\Studies\\9006 Retirement\\SEC-2022_8Feb2018.dyr'
-zone = [140,150]
-fault = 11937
+dir = r'D:\SEC-OneDrive\OneDrive - ITC - Saudi Electicity Company\Studies\2023 Reinforcment\\'
+outfile = 'Output/Hail Test.out'
+savfile = dir + 'SEC-2022_Peak Base Case_5Feb2018_511MW-delayedProjectsRemoved.sav'
+dyrefile = dir + 'SEC-2022_8Feb2018.dyr'
+zone = [120]
+fault = 11930
 
-# solve(savfile, fault, zone, outfile,dyrefile)
+solve(savfile, fault, zone, outfile,dyrefile)
 
 
 channels = dyntools.CHNF(outfile)
@@ -245,8 +229,11 @@ checkmotorstalled(channels,outfile)
 chNum = getStalled()
 print   chNum
 sh_ttl, ch_id, ch_data = channels.get_data()
-volt = getKeysByValues(ch_id,['11937','18602','18601','18600'])
+voltagesBuses = [str(fault),'18914','18915']
+volt = getKeysByValues(ch_id,['VOLT '+ i for i in voltagesBuses])
 svc = getKeysByValues(ch_id,['SVC'])
+print volt
+print svc
 # Without Gen
 channels.txtout(channels=volt,txtfile='Channels/voltages.txt')
 channels.txtout(channels=chNum,txtfile='Channels/speeds.txt')
