@@ -169,7 +169,6 @@ def getKeysByValues(dictOfElements, listOfValues):
     listOfKeys = list()
     listOfItems = dictOfElements.items()
     for item  in listOfItems:
-        print item
         try:
             if re.search('|'.join(listOfValues),item[1]):
                 listOfKeys.append(item[0])
@@ -216,12 +215,12 @@ except OSError:
 
 dir = r'D:\SEC-OneDrive\OneDrive - ITC - Saudi Electicity Company\Studies\2023 Reinforcment\\'
 outfile = 'Output/Hail Test.out'
-savfile = dir + 'SEC-2022_Peak Base Case_5Feb2018_511MW-delayedProjectsRemoved.sav'
+savfile = dir + 'SEC-2022_Peak Base Case_5Feb2018_511MW-Hail Load 2023.sav'
 dyrefile = dir + 'SEC-2022_8Feb2018.dyr'
 zone = [120]
 fault = 11930
 
-solve(savfile, fault, zone, outfile,dyrefile)
+# solve(savfile, fault, zone, outfile,dyrefile)
 
 
 channels = dyntools.CHNF(outfile)
@@ -229,12 +228,16 @@ checkmotorstalled(channels,outfile)
 chNum = getStalled()
 print   chNum
 sh_ttl, ch_id, ch_data = channels.get_data()
+
+motors = ['179141','179151','179181','179171']
 voltagesBuses = [str(fault),'18914','18915']
 volt = getKeysByValues(ch_id,['VOLT '+ i for i in voltagesBuses])
 svc = getKeysByValues(ch_id,['SVC'])
+speed = getKeysByValues(ch_id,[i+'.* SPEED' for i in motors])
 print volt
 print svc
+print speed
 # Without Gen
 channels.txtout(channels=volt,txtfile='Channels/voltages.txt')
-channels.txtout(channels=chNum,txtfile='Channels/speeds.txt')
+channels.txtout(channels=speed,txtfile='Channels/speeds.txt')
 channels.txtout(channels=svc,txtfile='Channels/svc.txt')

@@ -4,8 +4,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 target_folder=os.path.dirname(sys.argv[0])  # script directory
 os.chdir(target_folder)
-year = '2022'
-fault = '9037-8602 Outage'
+year = '2023'
+fault = '9030-8914 Outage'
 outFolder='Figuers/'
 ######################
 # PLOT VOLTAGES      #
