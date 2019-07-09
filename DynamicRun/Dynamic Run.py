@@ -75,13 +75,45 @@ def svcChannels(zone):
     out.close()
     psspy.close_report()
 
+def statcomChannels(zone):
+    target_folder = os.path.dirname(sys.argv[0])  # script directory
+    os.chdir(target_folder)
+    out = open('varchannels.py', 'a')
+    psspy.lines_per_page_one_device(1, 10000000)
+    psspy.report_output(2, 'Logs/statcomModels.log', [0, 0])
+    psspy.bsys(0, 0, [0.0, 380.], 0, [], 0, [], 0, [], len(zone), zone)
+    psspy.fclist(0, 0, 0)
+    infile = open('Logs/statcomModels.log')
+    for lines in infile:  # go through the input file, one line at a time
+        lines = lines.split(None, 0)
+        for line in lines:
+            varNum = []
+            varName = []
+            if 'SVSMO3U2' in line:
+                varNum = line.split(
+                    'SVSMO3U2')  # Create a list of all the columns except the first 10 and the last 2.
+                varNum = varNum[1].split()
+                if re.search(r'(33.000|13.800|132.00|380.00)', line):
+                    varName = re.split(r'(33.000|13.800|132.00|380.00)', line)  # Get the name
+                    varName = varName[0].strip()  # Get the name
+                else:
+                    varName = line.split()[:2]
+                    varName = varName[0] + " " + varName[1]
+                var = varNum[5]
+                channel = """psspy.var_channel([-1,""" + var + """], '""" + varName + """ STCM I')""" + "\n"
+                out.write(channel)
+                var = int(varNum[5])+2
+                channel = """psspy.var_channel([-1,""" + str(var) + """], '""" + varName + """ STCM VAR')""" + "\n"
+                out.write(channel)
+    out.close()
+    psspy.close_report()
 
 def solve(savfile, fault, zone, outfile,dyrefile):
     psspy.case(savfile)
     convert()
     psspy.lines_per_page_one_device(1, 10000000)
     psspy.progress_output(2, 'Logs/'+outfile[6:-3]+'.log', [0, 0])
-    psspy.addmodellibrary(r"""D:\D old drives\SEC\Work\Studies\9006 Retirement\dsusr.dll""")
+    psspy.addmodellibrary(r"""D:\SEC-OneDrive\OneDrive - ITC - Saudi Electicity Company\Studies\2023 Reinforcment\dsusr.dll""")
     psspy.dyre_new([1, 1, 1, 1], dyrefile, "", "", "")
     psspy.dynamics_solution_param_2(intgar1=200, realar1=0.4, realar3=0.0008333, realar4=0.0033333)
     psspy.set_relang(1, 0, "")
@@ -89,6 +121,7 @@ def solve(savfile, fault, zone, outfile,dyrefile):
     psspy.chsb(1, 0, [-1, -1, -1, 1, 13, 0])
     dataextract(zone)
     svcChannels(zone)
+    statcomChannels(zone)
     import varchannels
     # psspy.bus_frequency_channel([178, 19039], r"""Freq""")
     # psspy.chsb(0, 0, [-1, -1, -1, 1, 1, 0])
@@ -97,7 +130,7 @@ def solve(savfile, fault, zone, outfile,dyrefile):
     psspy.dist_scmu_fault([0, 0, 1, fault], [0.0, 0.0, 0.0, 0.0])
     psspy.run(0, 0.21667, 600, 0, 11)
     psspy.dist_clear_fault(1)
-    # psspy.dist_3wind_trip(fault,19059,193591,r"""1""")
+    # psspy.dist_3wind_trip(fault,19030,193301,r"""1""")
     psspy.dist_branch_trip(fault, 18914, r"""1""")
     # psspy.dist_machine_trip(177691,r"""5""")
     psspy.set_osscan(1, 0)
@@ -214,9 +247,9 @@ except OSError:
     pass
 
 dir = r'D:\SEC-OneDrive\OneDrive - ITC - Saudi Electicity Company\Studies\2023 Reinforcment\\'
-outfile = 'Output/Hail Test.out'
-savfile = dir + 'SEC-2022_Peak Base Case_5Feb2018_511MW-Hail Load 2023.sav'
-dyrefile = dir + 'SEC-2022_8Feb2018.dyr'
+outfile = 'Output/Hail-9030-8914Outage2023-Statcom.out'
+savfile = dir + 'SEC-2022_Peak Base Case_5Feb2018_511MW-Hail Load 2023-withSTATCOMS.sav'
+dyrefile = dir + 'SEC-2022_8Feb2018-Statcom.dyr'
 zone = [120]
 fault = 11930
 
@@ -228,16 +261,31 @@ checkmotorstalled(channels,outfile)
 chNum = getStalled()
 print   chNum
 sh_ttl, ch_id, ch_data = channels.get_data()
+print ch_id
 
 motors = ['179141','179151','179181','179171']
 voltagesBuses = [str(fault),'18914','18915']
 volt = getKeysByValues(ch_id,['VOLT '+ i for i in voltagesBuses])
 svc = getKeysByValues(ch_id,['SVC'])
+statcom = getKeysByValues(ch_id,['STCM'])
 speed = getKeysByValues(ch_id,[i+'.* SPEED' for i in motors])
 print volt
 print svc
 print speed
+for ch in chNum:
+    if ch not in speed:
+        speed.append(ch)
+print speed
+print statcom
+for ch in statcom:
+    svc.append(ch)
+print svc
+
 # Without Gen
 channels.txtout(channels=volt,txtfile='Channels/voltages.txt')
 channels.txtout(channels=speed,txtfile='Channels/speeds.txt')
 channels.txtout(channels=svc,txtfile='Channels/svc.txt')
+
+channels.xlsout(channels=volt,xlsfile='Channels/voltages.xls')
+channels.xlsout(channels=speed,xlsfile='Channels/speeds.xls')
+channels.xlsout(channels=svc,xlsfile='Channels/svc.xls')
