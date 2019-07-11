@@ -14,8 +14,6 @@ def convert():
 
 
 def dataextract(zone):
-    target_folder = os.path.dirname(sys.argv[0])  # script directory
-    os.chdir(target_folder)
     out = open('varchannels.py', 'w')
     out.write('import psspy\n')
     psspy.lines_per_page_one_device(1, 10000000)
@@ -46,12 +44,10 @@ def dataextract(zone):
 
 
 def svcChannels(zone):
-    target_folder = os.path.dirname(sys.argv[0])  # script directory
-    os.chdir(target_folder)
     out = open('varchannels.py', 'a')
     psspy.lines_per_page_one_device(1, 10000000)
     psspy.report_output(2, 'Logs/svcModels.log', [0, 0])
-    psspy.bsys(0, 0, [0.0, 380.], 0, [], 0, [], 0, [], len(zone), zone)
+    psspy.bsys(0, 1, [0.0, 132.], 0, [], 0, [], 0, [], len(zone), zone)
     psspy.mlst(0, 0, [1, 1, 2])
     infile = open('Logs/svcModels.log')
     for lines in infile:  # go through the input file, one line at a time
@@ -76,12 +72,10 @@ def svcChannels(zone):
     psspy.close_report()
 
 def statcomChannels(zone):
-    target_folder = os.path.dirname(sys.argv[0])  # script directory
-    os.chdir(target_folder)
     out = open('varchannels.py', 'a')
     psspy.lines_per_page_one_device(1, 10000000)
     psspy.report_output(2, 'Logs/statcomModels.log', [0, 0])
-    psspy.bsys(0, 0, [0.0, 380.], 0, [], 0, [], 0, [], len(zone), zone)
+    psspy.bsys(0, 1, [0.0, 132.], 0, [], 0, [], 0, [], len(zone), zone)
     psspy.fclist(0, 0, 0)
     infile = open('Logs/statcomModels.log')
     for lines in infile:  # go through the input file, one line at a time
@@ -99,12 +93,13 @@ def statcomChannels(zone):
                 else:
                     varName = line.split()[:2]
                     varName = varName[0] + " " + varName[1]
-                var = varNum[5]
+                var = varNum[4].replace('-','')
+                print var
                 channel = """psspy.var_channel([-1,""" + var + """], '""" + varName + """ STCM I')""" + "\n"
                 out.write(channel)
-                var = int(varNum[5])+2
-                channel = """psspy.var_channel([-1,""" + str(var) + """], '""" + varName + """ STCM VAR')""" + "\n"
-                out.write(channel)
+                # var = int(varNum[4].replace('-',''))+2
+                # channel = """psspy.var_channel([-1,""" + str(var) + """], '""" + varName + """ STCM VAR')""" + "\n"
+                # out.write(channel)
     out.close()
     psspy.close_report()
 
@@ -131,7 +126,7 @@ def solve(savfile, fault, zone, outfile,dyrefile):
     psspy.run(0, 0.21667, 600, 0, 11)
     psspy.dist_clear_fault(1)
     # psspy.dist_3wind_trip(fault,19030,193301,r"""1""")
-    psspy.dist_branch_trip(fault, 18914, r"""1""")
+    psspy.dist_branch_trip(fault, 18911, r"""1""")
     # psspy.dist_machine_trip(177691,r"""5""")
     psspy.set_osscan(1, 0)
     psspy.set_vltscn(1, 1.15, 0.8)
@@ -188,11 +183,15 @@ def getStalled():
         outfile.write(str(i)+' ')
     outfile.close()
     infile = open('Channels/stalling.txt')
+    lines=[]
     for lines in infile:
         lines = lines.split()
     chNum=[]
-    for i in lines:
-        chNum.append(int(i))
+    if len(lines) != 0:
+        for i in lines:
+            chNum.append(int(i))
+    else:
+        print 'No Motor Stalling'
     return chNum
 
 '''
@@ -235,8 +234,15 @@ ierr = psspy.psseinit(buses=150000)
 
 import dyntools
 
+studyname='Baqaa'
 target_folder = os.path.dirname(sys.argv[0])  # script directory
 os.chdir(target_folder)
+try:
+    os.makedirs(studyname)
+except OSError:
+    print 'Could not make study directory'
+    pass
+os.chdir(studyname)
 try:
     os.makedirs('Output')
     os.makedirs('Channels')
@@ -247,13 +253,13 @@ except OSError:
     pass
 
 dir = r'D:\SEC-OneDrive\OneDrive - ITC - Saudi Electicity Company\Studies\2023 Reinforcment\\'
-outfile = 'Output/Hail-9030-8914Outage2023-Statcom.out'
-savfile = dir + 'SEC-2022_Peak Base Case_5Feb2018_511MW-Hail Load 2023-withSTATCOMS.sav'
-dyrefile = dir + 'SEC-2022_8Feb2018-Statcom.dyr'
+outfile = 'Output/8903-8911Outage2026.out'
+savfile = dir + 'SEC-2022_Peak Base Case_5Feb2018_511MW-Hail Load 2026-baqa.sav'
+dyrefile = dir + 'SEC-2022_8Feb2018-50Statcom.dyr'
 zone = [120]
-fault = 11930
+fault = 18903
 
-# solve(savfile, fault, zone, outfile,dyrefile)
+solve(savfile, fault, zone, outfile,dyrefile)
 
 
 channels = dyntools.CHNF(outfile)
@@ -263,8 +269,8 @@ print   chNum
 sh_ttl, ch_id, ch_data = channels.get_data()
 print ch_id
 
-motors = ['179141','179151','179181','179171']
-voltagesBuses = [str(fault),'18914','18915']
+motors = ['179111','179031']
+voltagesBuses = [str(fault),'18911','179111']
 volt = getKeysByValues(ch_id,['VOLT '+ i for i in voltagesBuses])
 svc = getKeysByValues(ch_id,['SVC'])
 statcom = getKeysByValues(ch_id,['STCM'])
@@ -282,9 +288,9 @@ for ch in statcom:
 print svc
 
 # Without Gen
-channels.txtout(channels=volt,txtfile='Channels/voltages.txt')
-channels.txtout(channels=speed,txtfile='Channels/speeds.txt')
-channels.txtout(channels=svc,txtfile='Channels/svc.txt')
+# channels.txtout(channels=volt,txtfile='Channels/voltages.txt')
+# channels.txtout(channels=speed,txtfile='Channels/speeds.txt')
+# channels.txtout(channels=svc,txtfile='Channels/svc.txt')
 
 channels.xlsout(channels=volt,xlsfile='Channels/voltages.xls')
 channels.xlsout(channels=speed,xlsfile='Channels/speeds.xls')
