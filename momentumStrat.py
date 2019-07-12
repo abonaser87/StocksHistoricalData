@@ -60,6 +60,9 @@ def stats(df,period):
     print ' CAGR(%) = ' + str(cagr * 100)
     print ' Sharpe ratio = ' + str(sharpe)
 
+def multi_period_return(period_returns):
+    return np.prod(period_returns + 1) - 1
+
 try:
     df = pd.read_pickle('database.pkl')
 except:
@@ -71,8 +74,6 @@ tasi = df['TASI'].copy()
 df = df.drop('TASI',axis=1)
 
 returns = compute_daily_returns(df)
-def multi_period_return(period_returns):
-    return np.prod(period_returns + 1) - 1
 
 lookback = 11
 holdPeriod = 3
