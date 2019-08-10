@@ -1,9 +1,9 @@
 
 
 import os
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import numpy as np
 from collections import OrderedDict
 
 def symbol_to_path(symbol, base_dir="AdjDaily"):
@@ -57,8 +57,8 @@ def stats(df,period):
     cagr = (df.iloc[-1]/df.iloc[0])**(1.0/(len(df)/p)) - 1.0
     dr = compute_daily_returns(df)
     sharpe = np.sqrt(p) * dr.mean() / dr.std()
-    print ' CAGR(%) = ' + str(cagr * 100)
-    print ' Sharpe ratio = ' + str(sharpe)
+    print (' CAGR(%) = ' + str(cagr * 100))
+    print (' Sharpe ratio = ' + str(sharpe))
 
 def multi_period_return(period_returns):
     return np.prod(period_returns + 1) - 1
@@ -66,7 +66,7 @@ def multi_period_return(period_returns):
 try:
     df = pd.read_pickle('database.pkl')
 except:
-    print 'No pkl'
+    print ('No pkl')
     df = load_df()
 df = df.resample('M').mean()
 df = df.dropna(subset=["TASI"])
@@ -81,6 +81,6 @@ test = returns.rolling(lookback).apply(multi_period_return)
 test = test[lookback:]
 mask = test.iloc[0].isnull()
 test = test.loc[:,~mask]
-print test
+print (test)
 sorteddf = test.sort_values(by=test.index.values[0], ascending=False, axis=1)
-print sorteddf
+print (sorteddf)
