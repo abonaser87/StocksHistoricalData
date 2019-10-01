@@ -53,8 +53,8 @@ with PdfPages(outFolder+year+fault+'.pdf') as pdf:
 
     fig_size = plt.rcParams["figure.figsize"]
      # Set figure width to 12 and height to 9
-    fig_size[0] = 8.27
-    fig_size[1] = 14.70
+    fig_size[0] = 11.69
+    fig_size[1] = 8.27
     plt.rcParams["figure.figsize"] = fig_size
     data.plot()
     plt.xlabel('Time')

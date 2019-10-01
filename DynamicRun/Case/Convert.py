@@ -1,0 +1,8 @@
+psspy.cong(0)
+psspy.conl(0,1,1,[0,0],[ 100.0,0.0,0.0, 100.0])
+psspy.conl(0,1,2,[0,0],[ 100.0,0.0,0.0, 100.0])
+psspy.conl(0,1,3,[0,0],[ 100.0,0.0,0.0, 100.0])
+psspy.ordr(0)
+psspy.fact()
+psspy.tysl(0)
+psspy.tysl(0)
