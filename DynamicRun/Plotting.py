@@ -3,12 +3,13 @@ import os,sys,re
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-target_folder=os.path.dirname(sys.argv[0])  # script directory
-os.chdir(target_folder)
-os.chdir('Baqaa')
-year = '2026'
-fault = 'Fault @ 8903 - 8903-8911 Outage'
+dir = r"""D:\SEC-OneDrive\OneDrive - ITC - Saudi Electicity Company\Studies\Nimar Grants\\"""
+os.chdir(dir)
+os.chdir('Nimar')
+year = '2023'
+fault = 'Fault @ 8061 - 8317-8061 Outage'
 outFolder='Figuers/'
+skipSVC = True
 with PdfPages(outFolder+year+fault+'.pdf') as pdf:
     ######################
     # PLOT VOLTAGES      #
@@ -158,15 +159,16 @@ with PdfPages(outFolder+year+fault+'.pdf') as pdf:
     #             continue
     #         outfile.write(str(k)+',')
     #         i = i + 1
-    data = pd.read_excel('Channels/svc.xlsx',header=3,index_col=0)
-    # data.rename(columns=lambda x: x[:6].strip(), inplace=True)
-    # df = pd.read_csv('Channels/svc.csv',index_col='Time')
-    data.plot()
+    if not skipSVC:
+        data = pd.read_excel('Channels/svc.xlsx',header=3,index_col=0)
+        # data.rename(columns=lambda x: x[:6].strip(), inplace=True)
+        # df = pd.read_csv('Channels/svc.csv',index_col='Time')
+        data.plot()
 
-    plt.xlabel('Time')
-    plt.ylabel('SVC Output')
-    plt.legend(loc='lower right')
-    plt.xlim([0,5])
-    plt.suptitle(year +' SVC Output , '+ fault)
-    pdf.savefig()
-    plt.close()
+        plt.xlabel('Time')
+        plt.ylabel('SVC Output')
+        plt.legend(loc='lower right')
+        plt.xlim([0,5])
+        plt.suptitle(year +' SVC Output , '+ fault)
+        pdf.savefig()
+        plt.close()

@@ -94,7 +94,7 @@ def statcomChannels(zone):
                     varName = line.split()[:2]
                     varName = varName[0] + " " + varName[1]
                 var = varNum[4].replace('-','')
-                print var
+                # print var
                 channel = """psspy.var_channel([-1,""" + var + """], '""" + varName + """ STCM I')""" + "\n"
                 out.write(channel)
                 # var = int(varNum[4].replace('-',''))+2
@@ -120,13 +120,14 @@ def solve(savfile, fault, zone, outfile,dyrefile):
     import varchannels
     # psspy.bus_frequency_channel([178, 19039], r"""Freq""")
     # psspy.chsb(0, 0, [-1, -1, -1, 1, 1, 0])
+    # psspy.var_channel([-1, 34190], '179111 Statcom')
     psspy.strt(0, outfile)
     psspy.run(0, 0.1, 600, 0, 51)
     psspy.dist_scmu_fault([0, 0, 1, fault], [0.0, 0.0, 0.0, 0.0])
     psspy.run(0, 0.21667, 600, 0, 11)
     psspy.dist_clear_fault(1)
     # psspy.dist_3wind_trip(fault,19030,193301,r"""1""")
-    psspy.dist_branch_trip(fault, 18911, r"""1""")
+    psspy.dist_branch_trip(fault, 18070, r"""1""")
     # psspy.dist_machine_trip(177691,r"""5""")
     psspy.set_osscan(1, 0)
     psspy.set_vltscn(1, 1.15, 0.8)
@@ -234,9 +235,14 @@ ierr = psspy.psseinit(buses=150000)
 
 import dyntools
 
-studyname='Baqaa'
-target_folder = os.path.dirname(sys.argv[0])  # script directory
-os.chdir(target_folder)
+studyname='Nimar'
+dir = r"""D:\SEC-OneDrive\OneDrive - ITC - Saudi Electicity Company\Studies\Nimar Grants\\"""
+outfile = 'Output/Nimar-9063-8070Outage.out'
+savfile = dir + 'SEC-2023_Peak Base Case_5Feb2018_511MW-delayedProjectsRemoved-8317 with 4 circuits closed.sav'
+dyrefile = dir + 'SEC-2022_8Feb2018.dyr'
+target_folder = os.path.dirname(dir)  # script directory
+os.chdir(dir)
+sys.path.insert(1, dir+studyname)
 try:
     os.makedirs(studyname)
 except OSError:
@@ -252,12 +258,9 @@ except OSError:
     print'Error creating directory'
     pass
 
-dir = r'D:\SEC-OneDrive\OneDrive - ITC - Saudi Electicity Company\Studies\2023 Reinforcment\\'
-outfile = 'Output/8903-8911Outage2026.out'
-savfile = dir + 'SEC-2022_Peak Base Case_5Feb2018_511MW-Hail Load 2026-baqa.sav'
-dyrefile = dir + 'SEC-2022_8Feb2018-50Statcom.dyr'
-zone = [120]
-fault = 18903
+
+zone = [160,140]
+fault = 11963
 
 solve(savfile, fault, zone, outfile,dyrefile)
 
@@ -269,8 +272,8 @@ print   chNum
 sh_ttl, ch_id, ch_data = channels.get_data()
 print ch_id
 
-motors = ['179111','179031']
-voltagesBuses = [str(fault),'18911','179111']
+motors = ['173171','173172']
+voltagesBuses = [str(fault),'18317','18070']
 volt = getKeysByValues(ch_id,['VOLT '+ i for i in voltagesBuses])
 svc = getKeysByValues(ch_id,['SVC'])
 statcom = getKeysByValues(ch_id,['STCM'])
@@ -286,12 +289,11 @@ print statcom
 for ch in statcom:
     svc.append(ch)
 print svc
-
 # Without Gen
 # channels.txtout(channels=volt,txtfile='Channels/voltages.txt')
 # channels.txtout(channels=speed,txtfile='Channels/speeds.txt')
 # channels.txtout(channels=svc,txtfile='Channels/svc.txt')
 
-channels.xlsout(channels=volt,xlsfile='Channels/voltages.xls')
-channels.xlsout(channels=speed,xlsfile='Channels/speeds.xls')
-channels.xlsout(channels=svc,xlsfile='Channels/svc.xls')
+channels.xlsout(channels=volt,xlsfile='Channels/voltages.xls',show=False)
+channels.xlsout(channels=speed,xlsfile='Channels/speeds.xls',show=False)
+channels.xlsout(channels=svc,xlsfile='Channels/svc.xls',show=False)
