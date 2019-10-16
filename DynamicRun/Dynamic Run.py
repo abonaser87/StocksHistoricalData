@@ -120,7 +120,6 @@ def solve(savfile, fault, zone, outfile,dyrefile):
     import varchannels
     # psspy.bus_frequency_channel([178, 19039], r"""Freq""")
     # psspy.chsb(0, 0, [-1, -1, -1, 1, 1, 0])
-    # psspy.var_channel([-1, 34190], '179111 Statcom')
     psspy.strt(0, outfile)
     psspy.run(0, 0.1, 600, 0, 51)
     psspy.dist_scmu_fault([0, 0, 1, fault], [0.0, 0.0, 0.0, 0.0])
@@ -237,7 +236,7 @@ import dyntools
 
 studyname='Nimar'
 dir = r"""D:\SEC-OneDrive\OneDrive - ITC - Saudi Electicity Company\Studies\Nimar Grants\\"""
-outfile = 'Output/Nimar-9063-8070Outage.out'
+outfile = 'Output/Nimar-8061-8317Outage.out'
 savfile = dir + 'SEC-2023_Peak Base Case_5Feb2018_511MW-delayedProjectsRemoved-8317 with 4 circuits closed.sav'
 dyrefile = dir + 'SEC-2022_8Feb2018.dyr'
 target_folder = os.path.dirname(dir)  # script directory
@@ -260,9 +259,9 @@ except OSError:
 
 
 zone = [160,140]
-fault = 11963
+fault = 18061
 
-solve(savfile, fault, zone, outfile,dyrefile)
+# solve(savfile, fault, zone, outfile,dyrefile)
 
 
 channels = dyntools.CHNF(outfile)
@@ -293,7 +292,25 @@ print svc
 # channels.txtout(channels=volt,txtfile='Channels/voltages.txt')
 # channels.txtout(channels=speed,txtfile='Channels/speeds.txt')
 # channels.txtout(channels=svc,txtfile='Channels/svc.txt')
-
 channels.xlsout(channels=volt,xlsfile='Channels/voltages.xls',show=False)
 channels.xlsout(channels=speed,xlsfile='Channels/speeds.xls',show=False)
 channels.xlsout(channels=svc,xlsfile='Channels/svc.xls',show=False)
+
+chhns = { 1 : {'chns'  : volt,
+               'title': 'Voltages',
+               'yscale': [0.5, 1.2]},
+          2 : {'chns'  : speed ,
+               'title': 'Motor Speed'
+               },
+          }
+optnfmt = {'rows': 1,
+ 'columns': 1,
+'dpi': 600,
+'showttl': False,
+ 'showoutfnam': False,
+ 'showlogo': False,
+'legendtype': 4,
+'addmarker': False,
+}
+# channels.xyplots(optnchn=chhns,optnfmt=optnfmt,plotsavfile='Figuers/figs.jpg')
+# channels.xyplots2doc(optnchn=chhns,optnfmt=optnfmt,show=False,docfile='Figures/plots.doc')

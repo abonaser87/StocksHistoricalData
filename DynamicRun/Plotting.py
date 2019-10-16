@@ -58,11 +58,12 @@ with PdfPages(outFolder+year+fault+'.pdf') as pdf:
     fig_size[1] = 8.27
     plt.rcParams["figure.figsize"] = fig_size
     data.plot()
-    plt.xlabel('Time')
-    plt.ylabel('Voltage')
+    plt.xlabel('Time (sec)')
+    plt.ylabel('Voltage (pu)')
     plt.legend(loc='lower right')
     plt.xlim([0,5])
     plt.suptitle(year+' Voltages ,'+fault)
+    plt.savefig(outFolder+year+' Voltages , '+fault+'.png')
     pdf.savefig()
 
     plt.close()
@@ -115,11 +116,12 @@ with PdfPages(outFolder+year+fault+'.pdf') as pdf:
     data = pd.read_excel('Channels/speeds.xlsx',header=3,index_col=0)
     data.rename(columns=lambda x: x[:6].strip(), inplace=True)
     data.plot()
-    plt.xlabel('Time')
+    plt.xlabel('Time (sec)')
     plt.ylabel('Speed')
     plt.legend(loc='lower right')
     plt.xlim([0,5])
     plt.suptitle(year +' MotorSpeed , '+ fault)
+    plt.savefig(outFolder + year + ' MotorSpeed , ' + fault + '.png')
     pdf.savefig()
     plt.close()
 
@@ -165,10 +167,11 @@ with PdfPages(outFolder+year+fault+'.pdf') as pdf:
         # df = pd.read_csv('Channels/svc.csv',index_col='Time')
         data.plot()
 
-        plt.xlabel('Time')
+        plt.xlabel('Time (sec)')
         plt.ylabel('SVC Output')
         plt.legend(loc='lower right')
         plt.xlim([0,5])
         plt.suptitle(year +' SVC Output , '+ fault)
+        plt.savefig(outFolder + year + ' SVC Output , ' + fault + '.png')
         pdf.savefig()
         plt.close()
