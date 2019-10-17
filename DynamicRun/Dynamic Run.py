@@ -118,7 +118,7 @@ def solve(savfile, fault, zone, outfile,dyrefile):
     svcChannels(zone)
     statcomChannels(zone)
     import varchannels
-    # psspy.bus_frequency_channel([178, 19039], r"""Freq""")
+    psspy.bus_frequency_channel([-1, fault], r"""Frequency""")
     # psspy.chsb(0, 0, [-1, -1, -1, 1, 1, 0])
     psspy.strt(0, outfile)
     psspy.run(0, 0.1, 600, 0, 51)
@@ -126,8 +126,8 @@ def solve(savfile, fault, zone, outfile,dyrefile):
     psspy.run(0, 0.21667, 600, 0, 11)
     psspy.dist_clear_fault(1)
     # psspy.dist_3wind_trip(fault,19030,193301,r"""1""")
-    psspy.dist_branch_trip(fault, 18070, r"""1""")
-    # psspy.dist_machine_trip(177691,r"""5""")
+    psspy.dist_branch_trip(fault, 49455, r"""1""")
+    # psspy.dist_machine_trip(13741,r"""1""")
     psspy.set_osscan(1, 0)
     psspy.set_vltscn(1, 1.15, 0.8)
     psspy.run(0, 1.0, 600, 0, 31)
@@ -135,63 +135,15 @@ def solve(savfile, fault, zone, outfile,dyrefile):
     psspy.close_report()
 
 
-def checkmotorstalled(channels,outfile):
-    inname = 'Logs/'+outfile[6:-3]+'log'
-    infile = open(inname)
-    chNum = []
+def checkmotorstalled(ch_id):
     # Get all speed channel numbers
-    for line in infile:
-        if re.match('^CHANNEL  \d', line) and 'SPEED' in line:
-            chNum.append(int(line.split()[1]))
-    channels.txtout(channels=chNum, txtfile='Channels/AllSpeeds.txt')
-    infile = open('Channels/AllSpeeds.txt')
-    # Prepare the data of all speeds to be checked to a dataframe
-    outfile = open('Channels/AllSpeeds.csv', 'w')
-    outfile.write('Time,')
-    i = 1
-    for Num in chNum:
-        if i == len(chNum):
-            outfile.write(str(Num))
-            continue
-        outfile.write(str(Num) + ',')
-        i = i + 1
-    outfile.write("\n")
-
-    for lines in infile:  # go through the input file, one line at a time
-        lines = lines.split(None, 0)
-        for line in lines:
-            if re.match('^\d\.\d', line) or line.startswith('0 '):
-                data = line.split()
-                i = 1
-                for t in data:
-                    if i == len(data):
-                        outfile.write(str(t))
-                        continue
-                    outfile.write(str(t) + ',')
-                    i = i + 1
-                outfile.write("\n")
-
-
-def getStalled():
-    data = pd.read_csv('Channels/AllSpeeds.csv',index_col='Time')
+    chNum = getKeysByValues(ch_id, ['.* SPEED'])
+    channels.xlsout(channels=chNum, xlsfile='Channels/AllSpeeds.xls',show=False)
+    data = pd.read_excel('Channels/AllSpeeds.xlsx', header=3, index_col=0)
     check = data.iloc[0]-data.iloc[-1]
     check = check.loc[check>0.01]
-    print check
     check = check.index.tolist()
-    outfile = open('Channels/stalling.txt','w')
-    for i in check:
-        outfile.write(str(i)+' ')
-    outfile.close()
-    infile = open('Channels/stalling.txt')
-    lines=[]
-    for lines in infile:
-        lines = lines.split()
-    chNum=[]
-    if len(lines) != 0:
-        for i in lines:
-            chNum.append(int(i))
-    else:
-        print 'No Motor Stalling'
+    chNum = getKeysByValues(ch_id, check)
     return chNum
 
 '''
@@ -234,10 +186,10 @@ ierr = psspy.psseinit(buses=150000)
 
 import dyntools
 
-studyname='Nimar'
-dir = r"""D:\SEC-OneDrive\OneDrive - ITC - Saudi Electicity Company\Studies\Nimar Grants\\"""
-outfile = 'Output/Nimar-8061-8317Outage.out'
-savfile = dir + 'SEC-2023_Peak Base Case_5Feb2018_511MW-delayedProjectsRemoved-8317 with 4 circuits closed.sav'
+studyname='WadiPV'
+dir = r"""D:\SEC-OneDrive\OneDrive - ITC - Saudi Electicity Company\Studies\RE Study\Final Study for Layla and Wadi\\"""
+outfile = 'Output/WADIPV-N-1.out'
+savfile = dir + 'SEC-2023_Peak Base Case_5Feb2018_511MW-delayedProjectsRemoved-RE Modeled.sav'
 dyrefile = dir + 'SEC-2022_8Feb2018.dyr'
 target_folder = os.path.dirname(dir)  # script directory
 os.chdir(dir)
@@ -258,25 +210,26 @@ except OSError:
     pass
 
 
-zone = [160,140]
-fault = 18061
+zone = [190]
+fault = 18797
 
 # solve(savfile, fault, zone, outfile,dyrefile)
 
 
 channels = dyntools.CHNF(outfile)
-checkmotorstalled(channels,outfile)
-chNum = getStalled()
-print   chNum
 sh_ttl, ch_id, ch_data = channels.get_data()
+
+chNum = checkmotorstalled(ch_id)
+print   chNum
 print ch_id
 
-motors = ['173171','173172']
-voltagesBuses = [str(fault),'18317','18070']
+motors = ['177821']
+voltagesBuses = [str(fault),'49455','18782']
 volt = getKeysByValues(ch_id,['VOLT '+ i for i in voltagesBuses])
 svc = getKeysByValues(ch_id,['SVC'])
 statcom = getKeysByValues(ch_id,['STCM'])
 speed = getKeysByValues(ch_id,[i+'.* SPEED' for i in motors])
+freq = getKeysByValues(ch_id,['FREQUENCY'])
 print volt
 print svc
 print speed
@@ -288,6 +241,7 @@ print statcom
 for ch in statcom:
     svc.append(ch)
 print svc
+print freq
 # Without Gen
 # channels.txtout(channels=volt,txtfile='Channels/voltages.txt')
 # channels.txtout(channels=speed,txtfile='Channels/speeds.txt')
@@ -295,6 +249,7 @@ print svc
 channels.xlsout(channels=volt,xlsfile='Channels/voltages.xls',show=False)
 channels.xlsout(channels=speed,xlsfile='Channels/speeds.xls',show=False)
 channels.xlsout(channels=svc,xlsfile='Channels/svc.xls',show=False)
+channels.xlsout(channels=freq,xlsfile='Channels/freq.xls',show=False)
 
 chhns = { 1 : {'chns'  : volt,
                'title': 'Voltages',

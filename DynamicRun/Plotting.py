@@ -3,11 +3,11 @@ import os,sys,re
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-dir = r"""D:\SEC-OneDrive\OneDrive - ITC - Saudi Electicity Company\Studies\Nimar Grants\\"""
+dir = r"""D:\SEC-OneDrive\OneDrive - ITC - Saudi Electicity Company\Studies\RE Study\Final Study for Layla and Wadi\\"""
 os.chdir(dir)
-os.chdir('Nimar')
-year = '2023'
-fault = 'Fault @ 8061 - 8317-8061 Outage'
+os.chdir('WadiPV')
+year = '2022'
+fault = 'Fault @ Wadi PV POI - 9701-8799 Outage'
 outFolder='Figuers/'
 skipSVC = True
 with PdfPages(outFolder+year+fault+'.pdf') as pdf:
@@ -175,3 +175,25 @@ with PdfPages(outFolder+year+fault+'.pdf') as pdf:
         plt.savefig(outFolder + year + ' SVC Output , ' + fault + '.png')
         pdf.savefig()
         plt.close()
+    ###################
+    ## FREQUNCY PLOT ##
+    ###################
+    data = pd.read_excel('Channels/freq.xlsx',header=3,index_col=0)
+    # data.rename(columns='FREQUENCY', inplace=True)
+    # data = pd.read_csv('Channels/voltages.csv',index_col='Time')
+    data = (1+data) * 60
+    fig_size = plt.rcParams["figure.figsize"]
+     # Set figure width to 12 and height to 9
+    fig_size[0] = 11.69
+    fig_size[1] = 8.27
+    plt.rcParams["figure.figsize"] = fig_size
+    data.plot()
+    plt.xlabel('Time (sec)')
+    plt.ylabel('Frequency')
+    plt.legend(loc='lower right')
+    plt.xlim([0,5])
+    plt.suptitle(year+' Frequency ,'+fault)
+    plt.savefig(outFolder+year+' Frequency , '+fault+'.png')
+    pdf.savefig()
+
+    plt.close()
