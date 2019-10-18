@@ -1,0 +1,514 @@
+NAME
+    dyntools - Post Process PSS(R)E Dynamic Simulation Channel Output Files
+
+FILE
+    c:\program files (x86)\pti\psse33\pssbin\dyntools.pyc
+
+CLASSES
+    CHNF
+    OUTDATA
+
+    class CHNF
+     |  This class reads PSSE dynamics simulation studies channel output binary (.out) files, and
+     |  provides methods to access and post process the data from those files.
+     |
+     |  Methods defined here:
+     |
+     |  __init__(self, *outfiles, **kwds)
+     |      Create CHNF object as below and apply various methods defined here.
+     |
+     |      Syntax:
+     |          chnfobj = dyntools.CHNF(*outfiles, **kwds)
+     |
+     |      Arguments:
+     |          outfiles = Provide one or more PSSE dynamics channel output file names separated by comma.
+     |                     At least one file name must be provided.
+     |      Allowed Keywords:
+     |          outvrsn  = 0, for no Extended Channel output file type (.out)
+     |                   = 1, for Extended Channel output file type (.outx) (default)
+     |
+     |  csvout(self, channels='', csvfile='', outfile='', ntimestep=1)
+     |      Write PSSE Dynamic Simulation Channel Output File Data to ASCII text file.
+     |      chnfobj.csvout(outfile, channels, csvfile, ntimestep)
+     |      channels = Channel numbers to extract, specified as a channel number or
+     |                 list of channel numbers to extract.
+     |                 If not specified, all channels are extracted, default.
+     |      csvfile  = Data saved to this Text File
+     |                 Default extension - .csv
+     |                 Default name - outfile name with .csv extension
+     |      outfile  = PSSE Dynamic Simulation Channel Output File Name (.out), when not
+     |                 provided, used 1st file from the files provided during object creation.
+     |      ntimestep= Number of timesteps per data export, i.e., for every 'ntimestep' data
+     |                 is exported. Default=1, i.e., export data for every time step.
+     |
+     |  get_data(self, channels='', outfile='')
+     |      Return short_title, chanid and chandata for outfile.
+     |      short_title, chanid, chandata = chnfobj.get_data(channels,outfile)
+     |      channels    = Channel numbers to extract, specified as a channel number or
+     |                    list of channel numbers to extract.
+     |                    If not specified, all channels are extracted, default.
+     |      outfile     = PSSE Dynamic Simulation Channel Output File Name (.out), when not
+     |                    provided, used 1st file from the files provided during object creation.
+     |      Returns
+     |      short_title = String of Short title of the PSSE case
+     |      chanid      = Dictionary of Channel IDs, {'time':'Time(s)',1:id1,2:id2,...,n:idn}
+     |      chandata    = Dictionary of Channel Data, {'time':[v],1:[v1],2:[v2],...,n:[vn]}
+     |                    where 1, 2, ..n are channel numbers available in the input file
+     |                          id1, id2, ...idn are the channel identifiers.
+     |                          v, v1, v2, ...vn are data values.
+     |
+     |  get_id(self, outfile='')
+     |      Return short_title and chanid for outfile.
+     |      short_title, chanid = chnfobj.get_id(outfile)
+     |      outfile     = PSSE Dynamic Simulation Channel Output File Name (.out), when not
+     |                    provided, used 1st file from the files provided during object creation.
+     |      Returns
+     |      short_title = String of Short title of the PSSE case
+     |      chanid      = Dictionary of Channel IDs, {'time':'Time(s)',1:id1,2:id2,...,n:idn}
+     |
+     |  get_range(self, outfile='')
+     |      Return actual minimum and maximum channel values (range) for outfile.
+     |      chanrange = chnfobj.get_range(outfile)
+     |      outfile   = PSSE Dynamic Simulation Channel Output File Name (.out), when not
+     |                  provided, used 1st file from the files provided during object creation.
+     |      Returns
+     |      chanrange = Dictionary of Channel range values
+     |                = {'time':{'min':v,'max':v},
+     |                       1 :{'min':v,'max':v},......
+     |                       n :{'min':v,'max':v} }
+     |                  where 1, 2, ..n are channel numbers available in the outfile
+     |                        'min':v are minumum values, and 'max':v maximum values.
+     |
+     |  get_scale(self, outfile='')
+     |      Return scaled (for plots) minimum and maximum channel values for outfile.
+     |      chanscale = chnfobj.get_scale(outfile)
+     |      outfile   = PSSE Dynamic Simulation Channel Output File Name (.out), when not
+     |                  provided, used 1st file from the files provided during object creation.
+     |      Returns
+     |      chanscale = Dictionary of Channel range values
+     |                = {'time':{'min':v,'max':v},
+     |                       1 :{'min':v,'max':v},......
+     |                       n :{'min':v,'max':v} }
+     |                  where 1, 2, ..n are channel numbers available in the outfile
+     |                        'min':v are minumum values, and 'max':v maximum values.
+     |
+     |  plots_close(self)
+     |      Close created plots.
+     |
+     |  plots_show(self)
+     |      Show created plots.
+     |
+     |  print_scale(self, outfile='')
+     |      Print actuval range and scaled (for plots) minimum and maximum channel values for outfile.
+     |      outfile = PSSE Dynamic Simulation Channel Output File Name (.out), when not
+     |                provided, used 1st file from the files provided during object creation.
+     |
+     |  set_plot_legend_options(self, loc='upper right', borderpad=0.2, labelspacing=0.5, handlelength=1.5, handletextpad=0.5, fontsize=8, frame=False)
+     |      Set plot legend options.
+     |      where:
+     |      loc           -> Any valid matplotlib legend location string, default='upper right'
+     |                       Allowed: 'upper right', 'upper left', 'lower left', 'lower right',
+     |                       'right', 'center left', 'center right', 'lower center', 'upper center',
+     |                       'center'
+     |      borderpad     -> Whitespace inside the legend border, default=0.2
+     |      labelspacing  -> Vertical space between the legend entries, default=0.5
+     |      handlelength  -> Length of the legend handles, default=1.5
+     |      handletextpad -> Pad between the legend handle and text, default=0.5
+     |      fontsize      -> Font size, default=8
+     |      frame         -> Frame legend box or not, default False
+     |      Note: The pad and spacing parameters are measured in font-size units.
+     |            A fontsize of 10 points and a handlelength=5 implies a handlelength of 50 points.
+     |
+     |  set_plot_line_colors(self, *args)
+     |      Set plot line colors.
+     |      where:
+     |      args is one or more plot line colors allowed by matplotlib.
+     |      Following are some of the allowed colors names:
+     |          'blue', 'red', 'black', 'green', 'cyan', 'magenta', 'yellow', 'darkblue', 'beige',
+     |          'brown', 'gray', 'khaki', 'pink', 'purple', 'royalblue', 'violet'
+     |
+     |  set_plot_line_styles(self, *args)
+     |      Set plot line styles.
+     |      where:
+     |      args is one or more plot line styles allowed by matplotlib.
+     |      Allowed matplotlib plot line styles are:
+     |          'solid', 'dashed', 'dashdot', 'dotted'
+     |
+     |  set_plot_markers(self, *args)
+     |      Set plot markers.
+     |      where:
+     |      args is one or more plot markers allowed by matplotlib.
+     |      Allowed matplotlib markers are:
+     |          'square', 'triangle_up', 'thin_diamond', 'plus', 'x', 'circle', 'star', 'hexagon1',
+     |          'pentagon', 'tri_down', 'tri_up', 'tri_left', 'tri_right', 'triangle_left',
+     |          'triangle_right', 'triangle_down', 'diamond', 'octagon'
+     |
+     |  set_plot_page_options(self, size='Letter', orientation='Portrait')
+     |      Set plot page options.
+     |      where:
+     |      size        -> paper size, default 'Letter',
+     |                     Allowed: 'Letter', 'Legal', 'A3', 'A4',
+     |      orientation -> page orientation, default 'Portrait',
+     |                     Allowed: 'Portrait', 'Landscape'
+     |
+     |  txtout(self, channels='', txtfile='', outfile='', ntimestep=1)
+     |      Write PSSE Dynamic Simulation Channel Output File Data to ASCII text file.
+     |      chnfobj.txtout(outfile, channels, txtfile, ntimestep)
+     |      channels = Channel numbers to extract, specified as a channel number or
+     |                 list of channel numbers to extract.
+     |                 If not specified, all channels are extracted, default.
+     |      txtfile  = Data saved to this Text File
+     |                 Default extension - .txt
+     |                 Default name - outfile name with .txt extension
+     |      outfile  = PSSE Dynamic Simulation Channel Output File Name (.out), when not
+     |                 provided, used 1st file from the files provided during object creation.
+     |      ntimestep= Number of timesteps per data export, i.e., for every 'ntimestep' data
+     |                 is exported. Default=1, i.e., export data for every time step.
+     |
+     |  xlsout(self, channels='', show=True, xlsfile='', outfile='', sheet='', overwritesheet=True, ntimestep=1)
+     |      Export PSSE Dynamic Simulation Channel Output File Data to Excel Spreadsheet.
+     |
+     |      xlsout() function require Python Win32 Extensions 'pywin32' module.
+     |      Self installation EXE files for this module is available at:
+     |           PSSE User Support Web Page and follow link 'Python Modules used by PSSE Python Utilities'.
+     |      Install it if already not installed.
+     |
+     |      xlsfile  = chnfobj.xlsout(outfile,channels,show,xlsfile)
+     |      channels = Channel numbers to extract, specified as a channel number or
+     |                 list of channel numbers to extract.
+     |                 If not specified, all channels are extracted, default.
+     |      show     = True (default) - Show Excel Spreadsheet when being populated,
+     |               = False - Hide
+     |      xlsfile  = Data saved to this Excel File, with or without extension.
+     |                 When no extension provided, extension - .xls  (Office 2003 and earlier) or
+     |                                                         .xlsx (Office 2007 and later)
+     |                 Default name - outfile name with .xls/.xlsx extension
+     |      outfile  = PSSE Dynamic Simulation Channel Output File Name (.out), when not
+     |                 provided, used 1st file from the files provided during object creation.
+     |      sheet    = Excel worksheet name, default ''
+     |      overwritesheet: Overwrite worksheets flag, default True
+     |                    = True,  existing worksheets are overwritten
+     |                    = False, existing worksheets are copied and their names
+     |                      appended with (#), where # is next sequence number.
+     |      ntimestep= Number of timesteps per data export, i.e., for every 'ntimestep' data
+     |                 is exported. Default=1, i.e., export data for every time step.
+     |
+     |  xyplots(self, optnchn={}, optnfmt={'addmarker': True, 'columns': 1, 'dpi': 300, 'legendtype': 1, 'rows': 1, 'showlogo': False, 'showoutfnam': True, 'showttl': True}, plotsavfile='')
+     |      Do XY plots.
+     |
+     |      xyplots() function require matplotlib and numpy modules.
+     |      Self installation EXE files for these modules are available at:
+     |           PSSE User Support Web Page and follow link 'Python Modules used by PSSE Python Utilities'.
+     |      Install these modules if already not installed.
+     |
+     |      retvfiles = chnfobj.xyplots(optnchn,optnfmt,plotsavfile)
+     |
+     |      optnchn = Is a dictionary specifying channels to plot and plotting options
+     |              = { 1 : {'chns'  : ch# or [ch1, ch2, ..] or {fnam:ch#} or {fnam:[ch1, chn2, ..]} or
+     |                                 [ch#, 'vf'] or [ch1, 'vf1', ch2, 'vf2', ch3, ch4, 'vf4'] or
+     |                                 [ch1, ch2, 'vf2', ch3, ch4, 'vf4'] or
+     |                                 {fnam: [ch1, 'vf1', ch2, 'vf2', ch3, ch4, 'vf4', ...]}
+     |                                 where 'vf' is any valid Python expression (valid function)
+     |                                 that modifes immediate preceding channel data.
+     |                                 (See Note 2)
+     |                       'title' : '',
+     |                       'ylabel': '',
+     |                       'xlabel': '',
+     |                       'xscale': [min, max],
+     |                       'yscale': [min, max],
+     |                       'xaxis' : ch# or {fnam:ch#} or [ch#, 'vf'] or {fnam:[ch#, 'vf']}
+     |                      },
+     |                  n : { .... } }
+     |                where,
+     |                --> 1 to n are figure numbers.
+     |
+     |                Note 1: When output file name is not provided while specifying X or Y channels,
+     |                        1st file provided during object creation is used.
+     |
+     |                For each figure, specify following
+     |                --> 'chns' are Y-axis channels numbers.
+     |                    When Y-axis channel file is 1st .out file, specify it as ch# or as list [ch#,ch#..]
+     |                    When Y-axis channels are from multiple .out files or not 1st .out file,
+     |                         specify as dictionary. For example:
+     |                         'chns':{fnam1:ch#, fnam2:[ch#,ch#], ...}
+     |                    When channels from multiple files are to be plotted in particular file order,
+     |                         specify them as OrderedDict. For example:
+     |                         'chns':collections.OrderedDict([(fnam1,ch#), (fnam2,ch#), (fnam3,ch#), ..)])
+     |
+     |                --> 'title'  is Figure Title, default None
+     |                --> 'ylabel' is Figure Y axis label, default None
+     |                --> 'xlabel' is Figure X axis label, default 'Time (s)'
+     |                --> 'yscale' is the list of two values of ymin and ymax, default Channel min and max
+     |                --> 'xscale' is the list of two values of xmin and xmax, default Channel min and max
+     |                --> 'xaxis'  is the X-axis channel number, default Time axis from .out file
+     |
+     |                Note 2:
+     |                'vf' is any valid function/expression that can be evaluated with eval(..) in Python.
+     |                     Use 'v0' as variable name of 1st value in channel data,
+     |                     Use 'v'  as variable name of each time step value in channel data
+     |
+     |                 'vf' operation is applied to only one preceding channel number in 'chns' list.
+     |                 Example: chns = [ch1, 'vf1', ch2, 'vf2', ch3, ch4, 'vf4']
+     |                 In this,
+     |                 a) channel data modified by 'vf' operation: ch1 by 'vf1', ch2 by 'vf2', and ch4 by 'vf4'.
+     |                 b) channel data ch3 is not modified by any operation.
+     |
+     |                 Examples of valid 'vf' specification:
+     |                 a) Convert pu frequency to frequency on 60 Hz base
+     |                        vf = '(1+v)*60'
+     |                 b) Convert channel data to pu data based on v0
+     |                        vf = 'v/v0'
+     |                 c) Scale channel data by any factor, like converting pu Power to MW power when sbase=100
+     |                        vf = 'v*100.0'
+     |
+     |                 Test if 'vf' is valid as below (from any Python interpreter):
+     |                 >>> v0=1.0
+     |                 >>> v=1.0
+     |                 >>> vf = '(1+v)*60'
+     |                 >>> eval(vf)
+     |                 >>> vf = 'v/v0'
+     |                 >>> eval(vf)
+     |
+     |      optnfmt = Is a dictionary specifying figure format options
+     |              = { 'rows'       : 1,
+     |                  'columns'    : 1,
+     |                  'dpi'        : 300,
+     |                  'showttl'    : True,
+     |                  'showoutfnam': True,
+     |                  'showlogo'   : True,
+     |                  'legendtype' : 1,
+     |                  'addmarker'  : True,
+     |                }
+     |                where
+     |                --> 'rows' is a number of rows in a figure, default 1
+     |                --> 'columns' is a number of columns in a figure, default 1
+     |                    'rows' and 'columns' determine number of subplots in a figure
+     |                --> 'dpi' plot file resolution dots per inch, default 300
+     |
+     |                Use following to format Figure title.
+     |                --> 'showttl' show Short Title from .out file or not, default True
+     |                --> 'showoutfnam' show .out file names or not, default True
+     |                --> 'showlogo' show PTI plot logo, default True
+     |
+     |                Use 'legendtype' to format individual plot legend, default 1.
+     |                --> 'legendtype' : 0, no legend
+     |                    Note: Here (A), #5, ANG1MINE are used for illustration only. Actual file order will
+     |                          depend on CHNF object, channel number and its title will be taken from .out file.
+     |                --> 'legendtype' : 1 to Legend or plot title will be formatted as: CHNL File (A), #5: ANG1MINE
+     |                                 : 2 to Legend or plot title will be formatted as: (A)(5): ANG1MINE
+     |                                 : 3 to Legend or plot title will be formatted as: (5): ANG1MINE
+     |                                 : 4 to Legend or plot title will be formatted as: ANG1MINE
+     |                Note: Legends can be dragged and placed at different location. If done so, use 'Save the figure'
+     |                      button in Figure Window to save the modified figure.
+     |
+     |                --> 'addmarker': Draw plots with markers added or not, default True
+     |
+     |      plotsavfile = Is a file name to save plots to, default None
+     |                    allowed file extensions - '.eps','.png','.pdf','.ps'
+     |                    Saved plot file type determined from extension, default extension 'png'
+     |                    When plots require more than one page, multipage pdf file is created when selected.
+     |                    For other file formats, file names are appended with 1,2,3..n.
+     |                    When plot file exists, it will be overwritten.
+     |      Returns
+     |      retvfiles   = Is a list of file names where plots are saved.
+     |
+     |  xyplots2doc(self, optnchn, optnfmt={}, docfile='', show=True, overwrite=False, caption=True, align='center', captionpos='below', height=0.0, width=0.0, rotate=0.0)
+     |      Do XY plots and insert them in a Word Document.
+     |
+     |      NOTE: When using this function, need to run python script which uses this function
+     |      from any Python interpreter (outside of PSSE GUI). It will not work when
+     |      called from PSSE GUI.
+     |
+     |      xyplots2doc() function require matplotlib, numpy and pywin32 modules.
+     |      Self installation EXE files for these modules are available at:
+     |           PSSE User Support Web Page and follow link 'Python Modules used by PSSE Python Utilities'.
+     |      Install these modules if already not installed.
+     |
+     |      ierr, docfile = chnfobj.xyplots2doc(optnchn,optnfmt,show,xlsfile)
+     |      optnchn    = Channels to plot
+     |      optnfmt    = Figure format options
+     |          Refer xyplots() funtion for details on optnchn and optnfmt.
+     |      docfile    = Plots inserted into this Word Document File
+     |                   Default extension - .doc
+     |                   Default name - Document# with .doc extension
+     |      show       = True (default) - Show Word document when being populated,
+     |                 = False - Hide
+     |      overwrite  = True, overwrite if file exists, file contents will be deleted.
+     |                 = False (default), do not overwrite if file exists, plots inserted at the end.
+     |      caption    = Figure caption
+     |                 = True (default), Only "Figure #" is used as caption
+     |                 = False, no caption
+     |      align      = Alignment, default - 'center', allowed: 'center','left','right','justify'
+     |      captionpos = Position of figure caption, default - 'below', allowed: 'below', 'above'
+     |      height     = Height in inches, default - original figure height
+     |      width      = Width  in inches, default - original figure width
+     |      rotate     = Clockwise rotation angle in degrees, default 0.0
+     |      Returns
+     |      ierr       = True, Successfully inserted plots in Word document
+     |                 = False, xyplots() function did not produce plots, hence plots are not inserted Word document
+     |      docfile    = Name of the DOC file created
+
+    class OUTDATA
+     |  Create OUTDATA object to post processes *.out and *.outx PSSE dynamics channel
+     |  files and apply various methods defined here to retrieve channel file data.
+     |
+     |  Syntax:
+     |      outobj = dyntools.OUTDATA(outfile, outvrsn, progress)
+     |
+     |  Arguments:
+     |      outfile  = The filename of a valid *.out or *.outx channel file.
+     |      outvrsn  = 0, for no Extended Channel output file type (.out)
+     |               = 1, for Extended Channel output file type (.outx) (default)
+     |      progress = Progress device to write progress messages
+     |                 = None (default), Progress messages written to sys.stdout device
+     |                 = Any file write object
+     |
+     |  Returned Values:
+     |      outobj  =  The object created for the specified outfile.
+     |
+     |  Methods defined here:
+     |
+     |  __init__(self, outfile, outvrsn=1, progress=None)
+     |
+     |  export_csv(self, *chnums, **kwds)
+     |      Write Channels Data to a Comma Separated Value (CSV) file.
+     |
+     |      Syntax:
+     |          chnfobj.csvout(*chnums, **kwds)
+     |
+     |      Arguments:
+     |          chnums     =  One or more Channel numbers separated by comma
+     |                        When not specified, all channels are extracted, default.
+     |      Allowed Keywords:
+     |          csvfile    =  Data saved to this CSV File
+     |                        Default extension - .csv
+     |                        Default name - outfile name with .csv extension
+     |          ntimestep  =  Number of timesteps per data export, i.e., for every 'ntimestep' data
+     |                        is exported. Default=1, i.e., export data for every time step.
+     |
+     |      Return Values:
+     |          None
+     |
+     |  export_txt(self, *chnums, **kwds)
+     |      Write Channels Data to ASCII text (.txt) file.
+     |
+     |      Syntax:
+     |          chnfobj.txtout(*chnums, **kwds)
+     |
+     |      Arguments:
+     |          chnums    = One or more Channel numbers separated by comma
+     |                      When not specified, all channels are extracted, default.
+     |      Allowed Keywords:
+     |          txtfile   = Data saved to this Text File
+     |                      Default extension - .txt
+     |                      Default name - outfile name with .txt extension
+     |          ntimestep = Number of timesteps per data export, i.e., for every 'ntimestep' data
+     |                      is exported. Default=1, i.e., export data for every time step.
+     |
+     |      Return Values:
+     |          None
+     |
+     |  export_xls(self, *chnums, **kwds)
+     |      Export Channels Data to Excel Spreadsheet.
+     |      Syntax:
+     |          xlsfile  = outobj.xlsout(chnums, show=True, xlsfile='', sheet='', overwritesheet=True,
+     |          ntimestep=1)
+     |
+     |      Arguments:
+     |          chnums    =  One or more Channel numbers separated by comma
+     |                       When not specified, all channels are extracted, default.
+     |      Allowed Keywords:
+     |          show      =  True (default) - Show Excel Spreadsheet when being populated,
+     |                    =  False - Hide
+     |          xlsfile   =  Data saved to this Excel File, with or without extension.
+     |                       When no extension provided, extension - .xls  (Office 2003 and earlier) or
+     |                                                               .xlsx (Office 2007 and later)
+     |                       Default name - outfile name with .xls/.xlsx extension
+     |          sheet     =  Excel worksheet name, default ''
+     |          overwritesheet: Overwrite worksheets flag, default True
+     |                        = True,  existing worksheets are overwritten
+     |                        = False, existing worksheets are copied and their names
+     |                          appended with (#), where # is next sequence number.
+     |          ntimestep =  Number of timesteps per data export, i.e., for every 'ntimestep' data
+     |                       is exported. Default=1, i.e., export data for every time step.
+     |
+     |      Return Values
+     |          xlsfile  =  filepath of created xls file
+     |
+     |  get_chdata(self, *chnums)
+     |      Returns channel data for outfile.
+     |      Syntax:
+     |          chdata = outobj.get_chdata(*chnums)
+     |
+     |      Arguments:
+     |          chnums = One or more Channel numbers separated by comma
+     |
+     |      Return Values:
+     |          chdata = Dictionary of Channel Data, {1:[v1],2:[v2],...,n:[vn]}
+     |                   where 1, 2, ..n are channel numbers available in the input file
+     |                   v, v1, v2, ...vn are data values.
+     |
+     |  get_id(self)
+     |      Returns short_title and chanid.
+     |      Syntax:
+     |          short_title, chanid = outobj.get_id()
+     |
+     |      Return Values:
+     |          short_title = String of Short title of the PSSE case
+     |          chanid      = Dictionary of Channel IDs, {'time':'Time(s)',1:id1,2:id2,...,n:idn}
+     |
+     |  get_range(self)
+     |      Returns actual minimum and maximum channel values (range).
+     |      Syntax:
+     |          outxobj_range = outobj.get_range()
+     |
+     |      Return Values:
+     |          outxobj_range = Dictionary of Channel range values
+     |                            = {'time':{'min':v,'max':v, 'v0':v},
+     |                                   1 :{'min':v,'max':v, 'v0':v},......
+     |                                   n :{'min':v,'max':v, 'v0':v} }
+     |                          where 1, 2, ..n are channel numbers available in the outfile
+     |                                'min':v are minumum values
+     |                                'max':v maximum values
+     |                                'v0':v are 1st data value
+     |
+     |  print_scale(self, flag_chscale=True)
+     |      Print actual range and scaled (for plots) minimum and maximum channel values for outfile.
+     |      Syntax:
+     |          print_scale(flag_chscale)
+     |
+     |      Arguments:
+     |          flag_chscale = True,  print scale (default)
+     |                         False, do not print scale
+     |
+     |      Return Values:
+     |          None
+     |
+     |  scale(self, ch, limit_min2zero=False)
+     |      Returns the min and max values for the specified channel number
+     |      Syntax:
+     |          chmin, chmax = outobj.scale(ch, limit_min2zero)
+     |
+     |      Arguments:
+     |          ch              =  channel number
+     |          limit_min2zero  =  boolean specifying if chmin values should be rounded
+     |                             to zero if negative (False by default).
+     |
+     |      Return Values:
+     |          chmin  =  Minimum float value for the specified channel id
+     |          chmax  =  Maximum float value for the specified channel id
+     |
+     |  scale_pssplt(self, ch, limit_min2zero=False)
+     |      Returns the min and max for the specified channel number as done in PSSPLT activity SCALCH.
+     |      Syntax:
+     |          chmin, chmax = outobj.scale(ch, limit_min2zero)
+     |
+     |      Arguments:
+     |          ch              =  channel number
+     |          limit_min2zero  =  boolean specifying if chmin values should be rounded
+     |                             to zero if negative (False by default).
+     |
+     |      Return Values:
+     |          chmin  =  Minimum float value for the specified channel id
+     |          chmax  =  Maximum float value for the specified channel id
+

@@ -3,11 +3,11 @@ import os,sys,re
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-dir = r"""D:\SEC-OneDrive\OneDrive - ITC - Saudi Electicity Company\Studies\RE Study\Final Study for Layla and Wadi\\"""
+dir = r"""H:\GDrive\SEC Work\RE Study\Final Study for Layla and Wadi\\"""
 os.chdir(dir)
-os.chdir('WadiPV')
+os.chdir('LaylaPV')
 year = '2022'
-fault = 'Fault @ Wadi PV POI - 9701-8799 Outage'
+fault = 'Fault @ Layla PV POI - Plant Outage'
 outFolder='Figuers/'
 skipSVC = True
 with PdfPages(outFolder+year+fault+'.pdf') as pdf:
@@ -120,6 +120,7 @@ with PdfPages(outFolder+year+fault+'.pdf') as pdf:
     plt.ylabel('Speed')
     plt.legend(loc='lower right')
     plt.xlim([0,5])
+    plt.ylim([-0.2,0.1])
     plt.suptitle(year +' MotorSpeed , '+ fault)
     plt.savefig(outFolder + year + ' MotorSpeed , ' + fault + '.png')
     pdf.savefig()
