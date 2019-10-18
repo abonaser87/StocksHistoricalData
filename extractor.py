@@ -9,7 +9,7 @@ for row in cfile:
     # Skip the header line
     if not cfile.line_num == 1:
         # create a new file by ticker number
-        outfile = csv.writer(open('AdjDaily/{}.csv'.format(row[0]), 'ab'))
+        outfile = csv.writer(open('AdjDaily/{}.csv'.format(row[0]), 'a', newline=''))
         # if it is empty insert the header
         if os.stat('AdjDaily/{}.csv'.format(row[0])).st_size == 0:
             outfile.writerow(fieldnames)
