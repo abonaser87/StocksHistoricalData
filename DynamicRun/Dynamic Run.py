@@ -108,7 +108,7 @@ def solve(savfile, fault, zone, outfile,dyrefile):
     convert()
     psspy.lines_per_page_one_device(1, 10000000)
     psspy.progress_output(2, 'Logs/'+outfile[6:-3]+'.log', [0, 0])
-    psspy.addmodellibrary(r"""H:\GDrive\SEC Work\RE Study\Final Study for Layla and Wadi\dsusr.dll""")
+    psspy.addmodellibrary(r"""D:\SEC-OneDrive\OneDrive - ITC - Saudi Electicity Company\Studies\2023 Reinforcment\dsusr.dll""")
     psspy.dyre_new([1, 1, 1, 1], dyrefile, "", "", "")
     psspy.dynamics_solution_param_2(intgar1=200, realar1=0.4, realar3=0.0008333, realar4=0.0033333)
     psspy.set_relang(1, 0, "")
@@ -126,8 +126,8 @@ def solve(savfile, fault, zone, outfile,dyrefile):
     psspy.run(0, 0.21667, 600, 0, 11)
     psspy.dist_clear_fault(1)
     # psspy.dist_3wind_trip(49450,fault,40081,r"""1""")
-    # psspy.dist_branch_trip(fault, 18708, r"""1""")
-    psspy.dist_machine_trip(13741,r"""1""")
+    psspy.dist_branch_trip(fault, 18317, r"""1""")
+    # psspy.dist_machine_trip(13741,r"""1""")
     psspy.set_osscan(1, 0)
     psspy.set_vltscn(1, 1.15, 0.8)
     psspy.run(0, 1.0, 600, 0, 31)
@@ -188,10 +188,10 @@ import psspy
 ierr = psspy.psseinit(buses=150000)
 
 import dyntools
-studyname='LaylaPV'
-dir = r"""H:\GDrive\SEC Work\RE Study\Final Study for Layla and Wadi\\"""
-outfile = 'Output/LaylaPV-PlantOutage.out'
-savfile = dir + 'SEC-2022_Peak Base Case_5Feb2018_511MW-WADI SVC-Layla.sav'
+studyname='Baqaa'
+dir = r"""D:\SEC-OneDrive\OneDrive - ITC - Saudi Electicity Company\Studies\Baqa\\"""
+outfile = 'Output/8903-8911Outage2023-50MVAR.out'
+savfile = dir + 'SEC-2022_Peak Base Case_5Feb2018_511MW-delayedProjectsRemoved-2023 load.sav'
 dyrefile = dir + 'SEC-2022_8Feb2018.dyr'
 target_folder = os.path.dirname(dir)  # script directory
 os.chdir(dir)
@@ -212,20 +212,20 @@ except OSError:
     pass
 
 
-zone = [130]
-fault = 18799
+zone = [160]
+fault = 18903
 
-solve(savfile, fault, zone, outfile,dyrefile)
+# solve(savfile, fault, zone, outfile,dyrefile)
 
-channels = dyntools.CHNF(outfile,outvrsn=0)
+channels = dyntools.CHNF(outfile)
 sh_ttl, ch_id, ch_data = channels.get_data()
 
 chNum = checkmotorstalled(ch_id)
 print   chNum
 print ch_id
 
-motors = ['177661']
-voltagesBuses = [str(fault),'11949','18760','18708']
+motors = ['179031','179111']
+voltagesBuses = [str(fault),'18911','179111']
 volt = getKeysByValues(ch_id,['VOLT '+ i for i in voltagesBuses])
 svc = getKeysByValues(ch_id,['SVC'])
 statcom = getKeysByValues(ch_id,['STCM'])
