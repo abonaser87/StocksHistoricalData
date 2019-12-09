@@ -4,6 +4,28 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
+pssedir = 'C:\Program Files (x86)\PTI\PSSE33'
+pssedir = str(pssedir)  # convert unicode to str
+
+# =============================================================================================
+# Files Used
+
+pssbindir = os.path.join(pssedir, 'PSSBIN')
+exampledir = os.path.join(pssedir, 'EXAMPLE')
+# =============================================================================================
+# Check if running from Python Interpreter
+exename = sys.executable
+p, nx = os.path.split(exename)
+nx = nx.lower()
+if nx in ['python.exe', 'pythonw.exe']:
+    os.environ['PATH'] = pssbindir + ';' + os.environ['PATH']
+    sys.path.insert(0, pssbindir)
+import redirect
+
+redirect.psse2py()
+import psspy
+import dyntools
+
 class DynamicSolver():
     def __init__(self,dirpath,dyrpath,dllpath,savfile, fault, zone,tripBuses,triptype):
         self.dirpath = unicode(dirpath,encoding="UTF-8")
@@ -124,7 +146,7 @@ class DynamicSolver():
         psspy.lines_per_page_one_device(1, 10000000)
         psspy.progress_output(2, 'Logs/' + self.outfile[6:-3] + '.log', [0, 0])
         psspy.addmodellibrary(self.dllpath)
-        psspy.dyre_new([1, 1, 1, 1], self.dyrfile, "", "", "")
+        psspy.dyre_new([1, 1, 1, 1], self.dyrpath, "", "", "")
         psspy.dynamics_solution_param_2(intgar1=200, realar1=0.4, realar3=0.0008333, realar4=0.0033333)
         psspy.set_relang(1, 0, "")
         psspy.bsys(1, 0, [0.0, 380.], 0, [], 0, [], 0, [], len(self.zone), self.zone)
@@ -157,7 +179,7 @@ class DynamicSolver():
     def checkmotorstalled(self,ch_id):
         # Get all speed channel numbers
         chNum = self.getKeysByValues(ch_id, ['.* SPEED'])
-        channels.xlsout(channels=chNum, xlsfile='Channels/AllSpeeds.xls', show=False, overwritesheet=True,
+        self.channels.xlsout(channels=chNum, xlsfile='Channels/AllSpeeds.xls', show=False, overwritesheet=True,
                         sheet='Sheet1')
         data = pd.read_excel('Channels/AllSpeeds.xlsx', header=3, index_col=0)
         check = data.iloc[0] - data.iloc[-1]
@@ -185,32 +207,7 @@ class DynamicSolver():
         return listOfKeys
 
     def psseInit(self):
-        pssedir = 'C:\Program Files (x86)\PTI\PSSE33'
-        pssedir = str(pssedir)  # convert unicode to str
-
-        # =============================================================================================
-        # Files Used
-
-        pssbindir = os.path.join(pssedir, 'PSSBIN')
-        exampledir = os.path.join(pssedir, 'EXAMPLE')
-        # =============================================================================================
-        # Check if running from Python Interpreter
-        exename = sys.executable
-        p, nx = os.path.split(exename)
-        nx = nx.lower()
-        if nx in ['python.exe', 'pythonw.exe']:
-            os.environ['PATH'] = pssbindir + ';' + os.environ['PATH']
-            sys.path.insert(0, pssbindir)
-        import redirect
-
-        redirect.psse2py()
-        import psspy
-
         ierr = psspy.psseinit(buses=150000)
-
-        import dyntools
-
-        target_folder = os.path.dirname(self.dirpath)  # script directory
         os.chdir(self.dirpath)
         sys.path.insert(1, self.dirpath)
         try:
@@ -224,8 +221,8 @@ class DynamicSolver():
     def plot(self,title,motors,voltagesBuses,bFreq,bSvc,bStatcom):
         if not self.solved:
             pass
-        channels = dyntools.CHNF(self.outfile)
-        sh_ttl, ch_id, ch_data = channels.get_data()
+        self.channels = dyntools.CHNF(self.outfile)
+        sh_ttl, ch_id, ch_data = self.channels.get_data()
         chNum = self.checkmotorstalled(ch_id)
 
         # motors = ['179031', '179111']
@@ -243,11 +240,11 @@ class DynamicSolver():
             for ch in statcom:
                 svc.append(ch)
 
-        channels.xlsout(channels=volt, xlsfile='Channels/voltages.xls', show=False, overwritesheet=True, sheet='Sheet1')
-        channels.xlsout(channels=speed, xlsfile='Channels/speeds.xls', show=False, overwritesheet=True, sheet='Sheet1')
-        if not len(svc) == 0: channels.xlsout(channels=svc, xlsfile='Channels/svc.xls', show=False, overwritesheet=True,
+        self.channels.xlsout(channels=volt, xlsfile='Channels/voltages.xls', show=False, overwritesheet=True, sheet='Sheet1')
+        self.channels.xlsout(channels=speed, xlsfile='Channels/speeds.xls', show=False, overwritesheet=True, sheet='Sheet1')
+        if not len(svc) == 0: self.channels.xlsout(channels=svc, xlsfile='Channels/svc.xls', show=False, overwritesheet=True,
                                               sheet='Sheet1')
-        channels.xlsout(channels=freq, xlsfile='Channels/freq.xls', show=False, overwritesheet=True, sheet='Sheet1')
+        self.channels.xlsout(channels=freq, xlsfile='Channels/freq.xls', show=False, overwritesheet=True, sheet='Sheet1')
         filename = 'Figuers/' + title
         with PdfPages(filename + '.pdf') as pdf:
             ######################
