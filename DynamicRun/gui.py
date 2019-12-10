@@ -315,6 +315,8 @@ class Ui_MainWindow(object):
         self.statusBar = QtGui.QStatusBar(MainWindow)
         self.statusBar.setObjectName(_fromUtf8("statusBar"))
         MainWindow.setStatusBar(self.statusBar)
+        self.label_14.setEnabled(False)
+        self.txtTo2.setEnabled(False)
 
         self.retranslateUi(MainWindow)
         self.verticalTabWidget.setCurrentIndex(1)
@@ -396,15 +398,17 @@ class Ui_MainWindow(object):
             self.tripBuses = []
             self.tripBuses = [f, t1, t2]
         elif i == 2:
-            self.tripType = 3
+            self.tripType = 2
             # Trip Generation Unit
             self.label_13.setEnabled(False)
             self.txtTo1.setEnabled(False)
+            self.label_14.setEnabled(False)
+            self.txtTo2.setEnabled(False)
             self.label_12.setText('Generation Bus:')
             self.tripBuses = []
             self.tripBuses = [f]
         else:
-            self.tripType = 3
+            self.tripType = 0
             # Trip Branch
             self.label_13.setEnabled(True)
             self.txtTo1.setEnabled(True)
@@ -425,5 +429,6 @@ if __name__ == "__main__":
     ui.btnDLL.pressed.connect(ui.on_DLL)
     ui.pushButton.pressed.connect(ui.on_Solve)
     ui.btnPlot.pressed.connect(ui.on_Plot)
+    ui.comboBoxTripType.activated.connect(ui.triptype)
     MainWindow.show()
     sys.exit(app.exec_())

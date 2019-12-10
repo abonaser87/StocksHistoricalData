@@ -37,8 +37,8 @@ class DynamicSolver():
         self.triptype = triptype
         self.tripBuses = [unicode(elem, encoding="UTF-8") for elem in tripBuses]
         self.outfile = 'Output/fault '+str(fault)+'-'.join(self.tripBuses)+'Outage.out'
-        self.psseInit()
         self.statusbar = statusbar
+        self.psseInit()
 
 
     def convert(self):
