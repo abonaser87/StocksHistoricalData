@@ -27,7 +27,7 @@ import psspy
 import dyntools
 
 class DynamicSolver():
-    def __init__(self,dirpath,dyrpath,dllpath,savfile, fault, zone,tripBuses,triptype):
+    def __init__(self,dirpath,dyrpath,dllpath,savfile, fault, zone,tripBuses,triptype,statusbar):
         self.dirpath = unicode(dirpath,encoding="UTF-8")
         self.dyrpath = unicode(dyrpath,encoding="UTF-8")
         self.dllpath = unicode(dllpath,encoding="UTF-8")
@@ -38,6 +38,7 @@ class DynamicSolver():
         self.tripBuses = [unicode(elem, encoding="UTF-8") for elem in tripBuses]
         self.outfile = 'Output/fault '+str(fault)+'-'.join(self.tripBuses)+'Outage.out'
         self.psseInit()
+        self.statusbar = statusbar
 
 
     def convert(self):
@@ -48,6 +49,7 @@ class DynamicSolver():
         psspy.ordr(0)
         psspy.fact()
         psspy.tysl(0)
+        self.statusbar.showMessage('Case Converted')
 
     def dataextract(self,zone):
         out = open('varchannels.py', 'w')
@@ -157,7 +159,9 @@ class DynamicSolver():
         import varchannels
         psspy.bus_frequency_channel([-1, self.fault], r"""Frequency""")
         # psspy.chsb(0, 0, [-1, -1, -1, 1, 1, 0])
-        psspy.strt(0, self.outfile)
+        ierr = psspy.strt(0, self.outfile)
+        if ierr == 0:
+            self.statusbar.showMessage('Case Initialized, Check Log file for details')
         psspy.run(0, 0.1, 600, 0, 51)
         psspy.dist_scmu_fault([0, 0, 1, self.fault], [0.0, 0.0, 0.0, 0.0])
         psspy.run(0, 0.21667, 600, 0, 11)
@@ -174,6 +178,7 @@ class DynamicSolver():
         psspy.run(0, 5.0, 600, 0, 51)
         psspy.close_report()
         self.solved = True
+        self.statusbar.showMessage('Finished Solving, Check Log file for details')
 
 
     def checkmotorstalled(self,ch_id):
@@ -208,6 +213,8 @@ class DynamicSolver():
 
     def psseInit(self):
         ierr = psspy.psseinit(buses=150000)
+        if ierr ==0:
+            self.statusbar.showMessage('PSSE Initialized')
         os.chdir(self.dirpath)
         sys.path.insert(1, self.dirpath)
         try:

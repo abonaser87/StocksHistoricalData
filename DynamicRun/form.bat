@@ -1,1 +1,1 @@
-C:\Python27\Lib\site-packages\PyQt4\pyuic4 gui.ui -o gui-v2.py
+C:\Python27\Lib\site-packages\PyQt4\pyuic4 guiv2.ui -o gui-v2.py
