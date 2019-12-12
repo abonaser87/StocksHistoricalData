@@ -190,9 +190,9 @@ ierr = psspy.psseinit(buses=150000)
 import dyntools
 studyname='Baqaa'
 dir = r"""D:\SEC-OneDrive\OneDrive - ITC - Saudi Electicity Company\Studies\Baqa\\"""
-outfile = 'Output/8903-8911Outage2023-50MVAR.out'
-savfile = dir + 'SEC-2022_Peak Base Case_5Feb2018_511MW-delayedProjectsRemoved-2023 load.sav'
-dyrefile = dir + 'SEC-2022_8Feb2018.dyr'
+outfile = 'Output/test.out'
+savfile = dir + 'SEC-2022_Peak Base Case_5Feb2018_511MW-Baqaa-2023-20MVAR.sav'
+dyrefile = dir + 'SEC-2022_8Feb2018-20MVAR Statcom.dyr'
 target_folder = os.path.dirname(dir)  # script directory
 os.chdir(dir)
 sys.path.insert(1, dir+studyname)
@@ -215,7 +215,7 @@ except OSError:
 zone = [160]
 fault = 18903
 
-# solve(savfile, fault, zone, outfile,dyrefile)
+solve(savfile, fault, zone, outfile,dyrefile)
 
 channels = dyntools.CHNF(outfile)
 sh_ttl, ch_id, ch_data = channels.get_data()
