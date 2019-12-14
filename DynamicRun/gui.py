@@ -419,13 +419,13 @@ class Ui_MainWindow(object):
         self.plotting.start()
 
     def on_Case(self):
-        self.casefile = QtGui.QFileDialog.getOpenFileName(MainWindow,'Open File', 'C:\\')
+        self.casefile = QtGui.QFileDialog.getOpenFileName(MainWindow,'Open File', 'C:\\',"SAV files (*.sav)")
         self.label_8.setText(self.casefile)
     def on_Dyr(self):
-        self.dyrfile = QtGui.QFileDialog.getOpenFileName(MainWindow,'Open File', 'C:\\')
+        self.dyrfile = QtGui.QFileDialog.getOpenFileName(MainWindow,'Open File', 'C:\\',"DYR files (*.dyr)")
         self.label_9.setText(self.dyrfile)
     def on_DLL(self):
-        self.dllfile = QtGui.QFileDialog.getOpenFileName(MainWindow,'Open File', 'C:\\')
+        self.dllfile = QtGui.QFileDialog.getOpenFileName(MainWindow,'Open File', 'C:\\',"DLL files (*.dll)")
         self.label_10.setText(self.dllfile)
     def triptype(self,i):
         f = self.txtFrom.text()
@@ -463,7 +463,7 @@ class Ui_MainWindow(object):
             self.tripBuses = [f, t1]
 
     def on_Outfile(self):
-        self.outfile = QtGui.QFileDialog.getOpenFileName(MainWindow,'Open File', 'C:\\')
+        self.outfile = QtGui.QFileDialog.getOpenFileName(MainWindow,'Open File', 'C:\\',"OUT files (*.out)")
         self.outFileName.setText(self.outfile)
     def TabChanged(self):
         if self.s.solved:
