@@ -3,6 +3,7 @@ import re
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
+from PyQt4.QtCore import QThread,pyqtSignal
 
 pssedir = 'C:\Program Files (x86)\PTI\PSSE33'
 pssedir = str(pssedir)  # convert unicode to str
@@ -26,11 +27,14 @@ redirect.psse2py()
 import psspy
 import dyntools
 
-class DynamicSolver():
-    def __init__(self, txtProgress):
-        self.progress = txtProgress
+class DynamicSolver(QThread):
+    sig = pyqtSignal(str)
+    def __init__(self):
+        QThread.__init__(self)
         self.solved = False
 
+    def run(self):
+        self.solve()
 
     def init(self,dirpath, dyrpath, dllpath, savfile, fault, zone, tripBuses, triptype):
         self.dirpath = unicode(dirpath,encoding="UTF-8")
@@ -41,7 +45,7 @@ class DynamicSolver():
         self.zone = [zone]
         self.triptype = triptype
         self.tripBuses = [unicode(elem, encoding="UTF-8") for elem in tripBuses]
-        self.outfile = 'Output/Fault at '+str(fault)+' Outage '+'-'.join(self.tripBuses)+'.out'
+        self.outfile = 'Output\Fault at '+str(fault)+' Outage '+'-'.join(self.tripBuses)+'.out'
         self.psseInit()
 
 
@@ -53,7 +57,8 @@ class DynamicSolver():
         psspy.ordr(0)
         psspy.fact()
         psspy.tysl(0)
-        self.progress.append('Case Converted')
+        self.sig.emit('Case Converted')
+        # self.progress.append('Case Converted')
 
     def dataextract(self,zone):
         out = open('varchannels.py', 'w')
@@ -149,7 +154,8 @@ class DynamicSolver():
     def solve(self):
         ierr = psspy.case(self.savfile)
         if ierr == 0:
-            self.progress.append('Case Opened '+self.savfile)
+            self.sig.emit('Case Opened '+self.savfile)
+            # self.progress.append('Case Opened '+self.savfile)
         self.convert()
         psspy.lines_per_page_one_device(1, 10000000)
         psspy.progress_output(2, 'Logs/' + self.outfile[6:-3] + '.log', [0, 0])
@@ -167,7 +173,8 @@ class DynamicSolver():
         # psspy.chsb(0, 0, [-1, -1, -1, 1, 1, 0])
         ierr = psspy.strt(0, self.outfile)
         if ierr == 0:
-            self.progress.append('Case Initialized, Check Log file for details')
+            self.sig.emit( 'Case Initialized, Check Log file for details')
+            # self.progress.append('Case Initialized, Check Log file for details')
         psspy.run(0, 0.1, 600, 0, 51)
         psspy.dist_scmu_fault([0, 0, 1, self.fault], [0.0, 0.0, 0.0, 0.0])
         psspy.run(0, 0.21667, 600, 0, 11)
@@ -184,7 +191,8 @@ class DynamicSolver():
         psspy.run(0, 5.0, 600, 0, 51)
         psspy.close_report()
         self.solved = True
-        self.progress.append('Finished Solving, Check Log file for details')
+        self.sig.emit( 'Finished Solving, Check Log file for details')
+        # self.progress.append('Finished Solving, Check Log file for details')
 
 
     def checkmotorstalled(self,ch_id):
@@ -220,7 +228,8 @@ class DynamicSolver():
     def psseInit(self):
         ierr = psspy.psseinit(buses=150000)
         if ierr ==0:
-            self.progress.append('PSSE Initialized')
+            self.sig.emit('PSSE Initialized')
+            # self.progress.append('PSSE Initialized')
         os.chdir(self.dirpath)
         sys.path.insert(1, self.dirpath)
         try:
@@ -229,13 +238,80 @@ class DynamicSolver():
             os.makedirs('Logs')
             os.makedirs('Figuers')
         except OSError:
-            print'Error creating directory'
             pass
+
+class Plotting(QThread):
+    sig = pyqtSignal(str)
+
+    def __init__(self,title,motors,voltagesBuses,bFreq,bSvc,bStatcom,outfile,solved):
+        QThread.__init__(self)
+        self.solved = solved
+        self.title = title
+        self.motors = motors
+        self.voltagesBuses = voltagesBuses
+        self.bFreq = bFreq
+        self.bSvc = bSvc
+        self.bStatcom = bStatcom
+        self.outfile = outfile
+
+
+    def run(self):
+        self.plot(self.title,self.motors,self.voltagesBuses,self.bFreq,self.bSvc,self.bStatcom,self.outfile)
+
+    def checkmotorstalled(self,ch_id):
+        # Get all speed channel numbers
+        chNum = self.getKeysByValues(ch_id, ['.* SPEED'])
+        self.channels.xlsout(channels=chNum, xlsfile='Channels/AllSpeeds.xls', show=False, overwritesheet=True,
+                        sheet='Sheet1')
+        data = pd.read_excel('Channels/AllSpeeds.xlsx', header=3, index_col=0)
+        check = data.iloc[0] - data.iloc[-1]
+        check = check.loc[check > 0.01]
+        check = check.index.tolist()
+        if not len(check) == 0:
+            chNum = self.getKeysByValues(ch_id, check)
+        else:
+            chNum = []
+        return chNum
+
+    '''
+    Get a list of keys from dictionary which has value that matches with any value in given list of values
+    '''
+
+    def getKeysByValues(self,dictOfElements, listOfValues):
+        listOfKeys = list()
+        listOfItems = dictOfElements.items()
+        for item in listOfItems:
+            try:
+                if re.search('|'.join(listOfValues), item[1]):
+                    listOfKeys.append(item[0])
+            except:
+                continue
+        return listOfKeys
+
+    def psseInit(self):
+        ierr = psspy.psseinit(buses=150000)
+        if ierr ==0:
+            self.sig.emit('PSSE Initialized')
+            # self.progress.append('PSSE Initialized')
+        os.chdir(self.dirpath)
+        sys.path.insert(1, self.dirpath)
+        try:
+            os.makedirs('Output')
+            os.makedirs('Channels')
+            os.makedirs('Logs')
+            os.makedirs('Figuers')
+        except OSError:
+            pass
+
     def plot(self,title,motors,voltagesBuses,bFreq,bSvc,bStatcom,outfile):
-        if not self.solved and outfile is None:
-            self.progress.append('Solve the case or load an .out file to plot')
+        if not self.solved:
+            self.dirpath = os.path.dirname(os.path.abspath(outfile))
+            self.psseInit()
+        elif not self.solved and outfile is None:
+            self.sig.emit('Solve the case or load an .out file to plot')
             return
-        self.channels = dyntools.CHNF(outfile)
+        self.sig.emit('Preparing to plot ...')
+        self.channels = dyntools.CHNF(outfile,outvrsn=0)
         sh_ttl, ch_id, ch_data = self.channels.get_data()
         chNum = self.checkmotorstalled(ch_id)
 
@@ -253,22 +329,18 @@ class DynamicSolver():
         if bStatcom:
             for ch in statcom:
                 svc.append(ch)
-
+        self.sig.emit('Extracting channels ...')
         self.channels.xlsout(channels=volt, xlsfile='Channels/voltages.xls', show=False, overwritesheet=True, sheet='Sheet1')
         self.channels.xlsout(channels=speed, xlsfile='Channels/speeds.xls', show=False, overwritesheet=True, sheet='Sheet1')
         if not len(svc) == 0: self.channels.xlsout(channels=svc, xlsfile='Channels/svc.xls', show=False, overwritesheet=True,
                                               sheet='Sheet1')
         self.channels.xlsout(channels=freq, xlsfile='Channels/freq.xls', show=False, overwritesheet=True, sheet='Sheet1')
-        try:
-            os.chdir('Figuers')
-        except OSError:
-            pass
-        filename = title
+        filename = 'Figuers/' + title
         with PdfPages(filename + '.pdf') as pdf:
             ######################
             # PLOT VOLTAGES      #
             ######################
-            self.progress.append('Plotting Voltages ...')
+            self.sig.emit('Plotting Voltages ...')
             data = pd.read_excel('Channels/voltages.xlsx', header=3, index_col=0)
             data.rename(columns=lambda x: x.split('VOLT')[1][:7].strip(), inplace=True)
             fig_size = plt.rcParams["figure.figsize"]
@@ -290,7 +362,7 @@ class DynamicSolver():
             ######################
             # PLOT SPEEDS        #
             ######################
-            self.progress.append('Plotting Motor Speeds ...')
+            self.sig.emit('Plotting Motor Speeds ...')
             data = pd.read_excel('Channels/speeds.xlsx', header=3, index_col=0)
             data.rename(columns=lambda x: x[:6].strip(), inplace=True)
             data.plot()
@@ -309,7 +381,7 @@ class DynamicSolver():
             # ######################
 
             if bSvc:
-                self.progress.append('Plotting FACTS ...')
+                self.sig.emit('Plotting FACTS ...')
                 data = pd.read_excel('Channels/svc.xlsx', header=3, index_col=0)
                 # data.rename(columns=lambda x: x[:6].strip(), inplace=True)
                 # df = pd.read_csv('Channels/svc.csv',index_col='Time')
@@ -327,7 +399,7 @@ class DynamicSolver():
             ## FREQUNCY PLOT ##
             ###################
             if bFreq:
-                self.progress.append('Plotting Frequency ...')
+                self.sig.emit('Plotting Frequency ...')
                 data = pd.read_excel('Channels/freq.xlsx', header=3, index_col=0)
                 # data.rename(columns='FREQUENCY', inplace=True)
                 # data = pd.read_csv('Channels/voltages.csv',index_col='Time')
@@ -347,4 +419,4 @@ class DynamicSolver():
                 pdf.savefig()
 
                 plt.close()
-        self.progress.append('Finished Plotting.')
+        self.sig.emit('Finished Plotting.')

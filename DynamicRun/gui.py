@@ -9,6 +9,7 @@
 from PyQt4 import QtCore, QtGui
 import os,sys
 import DynamicSolver
+
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
 except AttributeError:
@@ -382,18 +383,22 @@ class Ui_MainWindow(object):
         self.label_7.setText(self.dirpath)
 
     def initDynamicSolver(self):
-        self.s = DynamicSolver.DynamicSolver(self.txtProgress)
+        self.s = DynamicSolver.DynamicSolver()
 
     def on_Solve(self):
         if self.txtZoneNum.text() == "":
             pass
         zone = int(self.txtZoneNum.text())
         fault = int(self.txtFault.text())
+        # self.initDynamicSolver()
         self.triptype(self.comboBoxTripType.currentIndex())
-        # Decouble the variables from the class init so we can plot without solving
+        self.s.sig.connect(self.print_msg)
         self.s.init(self.dirpath, self.dyrfile, self.dllfile, self.casefile, fault, zone, self.tripBuses,self.tripType)
-        self.s.solve()
-
+        self.s.start()
+        # self.s.solve()
+        # self.s.terminate()
+    def print_msg(self,msg):
+        self.txtProgress.append(msg)
     def on_Plot(self):
         title = unicode(self.lineEdit_4.text(),encoding="UTF-8")
         motors = unicode(self.lineEdit_5.text(),encoding="UTF-8").split()
@@ -409,7 +414,9 @@ class Ui_MainWindow(object):
         bFreq = self.checkBox.isChecked()
         bSvc = self.checkBox_2.isChecked()
         bStatcom = self.checkBox_3.isChecked()
-        self.s.plot(title,motors,volts,bFreq,bSvc,bStatcom,outfile)
+        self.plotting = DynamicSolver.Plotting(title,motors,volts,bFreq,bSvc,bStatcom,outfile,self.s.solved)
+        self.plotting.sig.connect(self.print_msg)
+        self.plotting.start()
 
     def on_Case(self):
         self.casefile = QtGui.QFileDialog.getOpenFileName(MainWindow,'Open File', 'C:\\')
@@ -460,7 +467,7 @@ class Ui_MainWindow(object):
         self.outFileName.setText(self.outfile)
     def TabChanged(self):
         if self.s.solved:
-            name = str(self.s.outfile)
+            name = str(self.s.dirpath+'\\'+self.s.outfile)
             self.outFileName.setText(name)
 
 
