@@ -311,6 +311,7 @@ class Plotting(QThread):
             self.sig.emit('Solve the case or load an .out file to plot')
             return
         self.sig.emit('Preparing to plot ...')
+        name, major, minor, update, date, stat = psspy.psseversion()
         self.channels = dyntools.CHNF(outfile,outvrsn=0)
         sh_ttl, ch_id, ch_data = self.channels.get_data()
         chNum = self.checkmotorstalled(ch_id)

@@ -27,7 +27,7 @@ except AttributeError:
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
-        # MainWindow.resize(503, 432)
+        MainWindow.resize(503, 432)
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
         self.verticalLayout_4 = QtGui.QVBoxLayout(self.centralwidget)
@@ -315,8 +315,6 @@ class Ui_MainWindow(object):
         self.btnPlot = QtGui.QPushButton(self.plotting)
         self.btnPlot.setObjectName(_fromUtf8("btnPlot"))
         self.verticalLayout_5.addWidget(self.btnPlot)
-        self.btnPlot.raise_()
-        self.btnPlot.raise_()
         self.verticalTabWidget.addTab(self.plotting, _fromUtf8(""))
         self.verticalLayout_4.addWidget(self.verticalTabWidget)
         self.line = QtGui.QFrame(self.centralwidget)
@@ -335,9 +333,29 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         self.verticalTabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        MainWindow.setTabOrder(self.verticalTabWidget, self.btnStudyDir)
+        MainWindow.setTabOrder(self.btnStudyDir, self.btnCase)
+        MainWindow.setTabOrder(self.btnCase, self.btnDyr)
+        MainWindow.setTabOrder(self.btnDyr, self.btnDLL)
+        MainWindow.setTabOrder(self.btnDLL, self.txtZoneNum)
+        MainWindow.setTabOrder(self.txtZoneNum, self.txtFault)
+        MainWindow.setTabOrder(self.txtFault, self.comboBoxTripType)
+        MainWindow.setTabOrder(self.comboBoxTripType, self.txtFrom)
+        MainWindow.setTabOrder(self.txtFrom, self.txtTo1)
+        MainWindow.setTabOrder(self.txtTo1, self.txtTo2)
+        MainWindow.setTabOrder(self.txtTo2, self.pushButton)
+        MainWindow.setTabOrder(self.pushButton, self.btnOutFile)
+        MainWindow.setTabOrder(self.btnOutFile, self.lineEdit_4)
+        MainWindow.setTabOrder(self.lineEdit_4, self.lineEdit_5)
+        MainWindow.setTabOrder(self.lineEdit_5, self.lineEdit_6)
+        MainWindow.setTabOrder(self.lineEdit_6, self.checkBox)
+        MainWindow.setTabOrder(self.checkBox, self.checkBox_2)
+        MainWindow.setTabOrder(self.checkBox_2, self.checkBox_3)
+        MainWindow.setTabOrder(self.checkBox_3, self.btnPlot)
+        MainWindow.setTabOrder(self.btnPlot, self.txtProgress)
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow", None))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Dynamic Study Automation", None))
         self.label_2.setText(_translate("MainWindow", "Study Directory:", None))
         self.btnStudyDir.setToolTip(_translate("MainWindow", "Select a study directory for the output files", None))
         self.btnStudyDir.setText(_translate("MainWindow", "Select", None))
@@ -384,10 +402,23 @@ class Ui_MainWindow(object):
 
     def initDynamicSolver(self):
         self.s = DynamicSolver.DynamicSolver()
+        self.dirpath=''
+        self.dyrfile=''
+        self.dllfile=''
+        self.casefile=''
+        fault=''
+        zone=''
+        self.tripBuses=''
+        self.tripType=''
 
     def on_Solve(self):
-        if self.txtZoneNum.text() == "":
-            pass
+        zone = self.txtZoneNum.text()
+        fault = self.txtFault.text()
+        func = [self.dirpath, self.dyrfile, self.dllfile, self.casefile, fault, zone, self.tripBuses,self.tripType]
+        for f in func:
+            if f == '':
+                QtGui.QMessageBox.warning(MainWindow,'Error','Please make sure to fill all the fields')
+                return
         zone = int(self.txtZoneNum.text())
         fault = int(self.txtFault.text())
         # self.initDynamicSolver()

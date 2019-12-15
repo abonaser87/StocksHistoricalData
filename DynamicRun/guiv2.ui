@@ -563,9 +563,6 @@
          </widget>
         </item>
        </layout>
-       <zorder>layoutWidget</zorder>
-       <zorder>btnPlot</zorder>
-       <zorder>btnPlot</zorder>
       </widget>
      </widget>
     </item>
@@ -583,6 +580,29 @@
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
  </widget>
+ <tabstops>
+  <tabstop>verticalTabWidget</tabstop>
+  <tabstop>btnStudyDir</tabstop>
+  <tabstop>btnCase</tabstop>
+  <tabstop>btnDyr</tabstop>
+  <tabstop>btnDLL</tabstop>
+  <tabstop>txtZoneNum</tabstop>
+  <tabstop>txtFault</tabstop>
+  <tabstop>comboBoxTripType</tabstop>
+  <tabstop>txtFrom</tabstop>
+  <tabstop>txtTo1</tabstop>
+  <tabstop>txtTo2</tabstop>
+  <tabstop>pushButton</tabstop>
+  <tabstop>btnOutFile</tabstop>
+  <tabstop>lineEdit_4</tabstop>
+  <tabstop>lineEdit_5</tabstop>
+  <tabstop>lineEdit_6</tabstop>
+  <tabstop>checkBox</tabstop>
+  <tabstop>checkBox_2</tabstop>
+  <tabstop>checkBox_3</tabstop>
+  <tabstop>btnPlot</tabstop>
+  <tabstop>txtProgress</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
