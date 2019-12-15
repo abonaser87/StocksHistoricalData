@@ -12,7 +12,6 @@ pssedir = str(pssedir)  # convert unicode to str
 # Files Used
 
 pssbindir = os.path.join(pssedir, 'PSSBIN')
-exampledir = os.path.join(pssedir, 'EXAMPLE')
 # =============================================================================================
 # Check if running from Python Interpreter
 exename = sys.executable
@@ -155,7 +154,6 @@ class DynamicSolver(QThread):
         ierr = psspy.case(self.savfile)
         if ierr == 0:
             self.sig.emit('Case Opened '+self.savfile)
-            # self.progress.append('Case Opened '+self.savfile)
         self.convert()
         psspy.lines_per_page_one_device(1, 10000000)
         psspy.progress_output(2, 'Logs/' + self.outfile[6:-3] + '.log', [0, 0])
@@ -170,11 +168,9 @@ class DynamicSolver(QThread):
         self.statcomChannels(self.zone)
         import varchannels
         psspy.bus_frequency_channel([-1, self.fault], r"""Frequency""")
-        # psspy.chsb(0, 0, [-1, -1, -1, 1, 1, 0])
         ierr = psspy.strt(0, self.outfile)
         if ierr == 0:
             self.sig.emit( 'Case Initialized, Check Log file for details')
-            # self.progress.append('Case Initialized, Check Log file for details')
         psspy.run(0, 0.1, 600, 0, 51)
         psspy.dist_scmu_fault([0, 0, 1, self.fault], [0.0, 0.0, 0.0, 0.0])
         psspy.run(0, 0.21667, 600, 0, 11)
@@ -192,7 +188,6 @@ class DynamicSolver(QThread):
         psspy.close_report()
         self.solved = True
         self.sig.emit( 'Finished Solving, Check Log file for details')
-        # self.progress.append('Finished Solving, Check Log file for details')
 
 
     def checkmotorstalled(self,ch_id):
@@ -310,12 +305,16 @@ class Plotting(QThread):
         elif not self.solved and outfile is None:
             self.sig.emit('Solve the case or load an .out file to plot')
             return
+        else:
+            self.dirpath = os.path.dirname(os.path.abspath(outfile))
         self.sig.emit('Preparing to plot ...')
         name, major, minor, update, date, stat = psspy.psseversion()
-        self.channels = dyntools.CHNF(outfile,outvrsn=0)
+        if major == 33 and minor == 12:
+            self.channels = dyntools.CHNF(outfile,outvrsn=0)
+        else:
+            self.channels = dyntools.CHNF(outfile)
         sh_ttl, ch_id, ch_data = self.channels.get_data()
         chNum = self.checkmotorstalled(ch_id)
-
         # motors = ['179031', '179111']
         # voltagesBuses = [str(fault), '18911', '179111']
         volt = self.getKeysByValues(ch_id, ['VOLT ' + i for i in voltagesBuses])
@@ -421,3 +420,4 @@ class Plotting(QThread):
 
                 plt.close()
         self.sig.emit('Finished Plotting.')
+        self.sig.emit('Figuers should be in'+self.dirpath+'\\Figuers')
