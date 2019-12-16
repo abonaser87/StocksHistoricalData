@@ -409,25 +409,23 @@ class Ui_MainWindow(object):
         fault=''
         zone=''
         self.tripBuses=''
-        self.tripType=''
+        self.tripType = 0
 
     def on_Solve(self):
         zone = self.txtZoneNum.text()
         fault = self.txtFault.text()
-        func = [self.dirpath, self.dyrfile, self.dllfile, self.casefile, fault, zone, self.tripBuses,self.tripType]
+        func = [self.dirpath, self.dyrfile, self.dllfile, self.casefile, fault, zone, self.tripBuses]
         for f in func:
             if f == '':
                 QtGui.QMessageBox.warning(MainWindow,'Error','Please make sure to fill all the fields')
                 return
         zone = int(self.txtZoneNum.text())
         fault = int(self.txtFault.text())
-        # self.initDynamicSolver()
         self.triptype(self.comboBoxTripType.currentIndex())
         self.s.sig.connect(self.print_msg)
         self.s.init(self.dirpath, self.dyrfile, self.dllfile, self.casefile, fault, zone, self.tripBuses,self.tripType)
         self.s.start()
-        # self.s.solve()
-        # self.s.terminate()
+
     def print_msg(self,msg):
         self.txtProgress.append(msg)
     def on_Plot(self):

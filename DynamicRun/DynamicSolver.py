@@ -420,4 +420,4 @@ class Plotting(QThread):
 
                 plt.close()
         self.sig.emit('Finished Plotting.')
-        self.sig.emit('Figuers should be in'+self.dirpath+'\\Figuers')
+        self.sig.emit('Figuers should be in '+self.dirpath+'\\Figuers')
